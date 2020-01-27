@@ -1,1 +1,4 @@
-include giwaxs_gui/static/*
+include giwaxs_gui/static/default_config/
+include giwaxs_gui/static/icons/*.png
+include giwaxs_gui/static/dll/*.dll
+include giwaxs_gui/static/dll/*.so
