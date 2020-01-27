@@ -7,6 +7,9 @@ logger = logging.getLogger(__name__)
 _CONFIG_FOLDER = Path(__file__).parents[1] / 'user_config'
 _DEFAULT_CONFIG_FOLDER = Path(__file__).parents[1] / 'static' / 'default_config'
 
+if not _CONFIG_FOLDER.is_dir():
+    _CONFIG_FOLDER.mkdir()
+
 
 def read_config(config_name: str, get_default_values: bool = False):
     filename = f'{config_name}.json'
