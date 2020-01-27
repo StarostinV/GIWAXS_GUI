@@ -8,7 +8,8 @@ data and its specific needs.
 
 ## Install
 ### Pip install 
-To install current release via pip, simply do:
+To install current release via pip, you should have python installed 
+on your computer. The minimum required version is 3.6.0. Install package via pip:
 
 ```sh
 pip install giwaxs_gui
