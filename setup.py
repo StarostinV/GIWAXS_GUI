@@ -1,5 +1,6 @@
 from setuptools import setup
 from pathlib import Path
+from setuptools import find_packages
 
 
 def read(filename: str):
@@ -9,8 +10,8 @@ def read(filename: str):
 
 setup(
     name='giwaxs_gui',
-    packages=['giwaxs_gui'],
-    version='0.0.1',
+    packages=find_packages('giwaxs_gui.__init__.py'),
+    version='0.0.2',
     author='Vladimir Starostin',
     author_email='vladimir.starostin@uni-tuebingen.de',
     description='A graphical tool for basic analysis of GIWAXS images.',
