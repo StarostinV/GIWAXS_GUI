@@ -26,6 +26,7 @@ setup(
         'PyQt5',
         'pyqtgraph'
     ],
+    include_package_data=True,
     keywords='xray python giwaxs scientific-analysis',
     url='http://packages.python.org/giwaxs_gui',
 )
