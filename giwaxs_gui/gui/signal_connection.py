@@ -15,13 +15,16 @@ from ..utils import RoiParameters
 logger = logging.getLogger(__name__)
 
 _SIGNAL_TYPES = ('broadcast', 'onlyForNames', 'exceptForNames')
+# TODO change to ENUM
 
 _DEFAULT_SIGNAL_TYPE = 'broadcast'
 
 _GlobalImageObject = Image()
+# TODO change to dependency injection
 
 
 class SignalKeys(object):
+    # TODO: change to ENUM
     _image_changed_key = 'image_changed'
     _geometry_changed_key = 'geometry_changed'
     _transformation_key = 'transformation'
@@ -29,6 +32,7 @@ class SignalKeys(object):
     _status_changed_key = 'status_changed'
     _name_changed_key = 'name_changed'
     _scale_changed_key = 'scale_changed'
+    _type_changed_key = 'type_changed'
 
     _segment_created_key = 'segment_created'
     _segment_deleted_key = 'segment_deleted'
@@ -42,7 +46,8 @@ class SignalKeys(object):
 _SPECIAL_SIGNAL_TYPES = {
     SignalKeys._name_changed_key: 'exceptForNames',
     SignalKeys._segment_moved_key: 'exceptForNames',
-    SignalKeys._geometry_changed_key: 'exceptForNames'
+    SignalKeys._geometry_changed_key: 'exceptForNames',
+    SignalKeys._type_changed_key: 'exceptForNames'
 }
 
 
@@ -95,7 +100,7 @@ class BasicSignalContainer(object):
         self._add_later = defaultdict(list)
 
     def remove(self, signal, copy: bool = True) -> 'BasicSignalContainer' or None:
-        # TODO: Add option to remove later!
+        # TODO: Add option to remove later?
         try:
             self._signals[signal.name].remove(signal)
         except ValueError:
@@ -210,6 +215,10 @@ class SignalContainer(BasicSignalContainer, SignalKeys):
     @_overload_signal_container_functions
     def scale_changed(self, data=None, *args, **kwargs):
         return self._scale_changed_key, EmptySignalData
+
+    @_overload_signal_container_functions
+    def type_changed(self, data=None, *args, **kwargs):
+        return self._type_changed_key, SegmentSignalData
 
 
 class BasicSignalData(object):
@@ -394,15 +403,10 @@ class AppDataHolder(SignalConnector):
 
     def __init__(self):
         SignalConnector.__init__(self, 'AppDataHolder')
-        self.data = None
-        self.geometry = None
-        self.init_angle = 0
-        self.init_angle_std = 360
         self.segments_dict = dict()
         self.selected_keys = list()
         self._status_changed_sent = False
         # only one StatusChangedSignal can be sent in a SignalContainer
-        self.beam_center = (0, 0)
 
     def connect(self, func):
         self.upwardSignal.connect(func)
@@ -413,7 +417,7 @@ class AppDataHolder(SignalConnector):
         # These keys are the keys of created or moved
         # rois. They will form StatusChangedSignal if not empty.
         for _ in s.geometry_changed():
-            self.on_geometry_changed()
+            self.on_geometry_changed(s)
 
         for _ in s.scale_changed():
             self.on_scale_changed(s)
@@ -470,12 +474,18 @@ class AppDataHolder(SignalConnector):
             self.segments_dict[k] = v._replace(radius=v.radius * scale, width=v.width * scale)
             s.segment_moved(self.segments_dict[k], add_later=True)
 
-    def on_geometry_changed(self):
-        geometry = self.image.geometry
-        if geometry and geometry.phi is not None:
-            phi = geometry.phi
-            self.init_angle = (phi.max() + phi.min()) / 2 * 180 / np.pi
-            self.init_angle_std = (phi.max() - phi.min()) * 180 / np.pi
+    def on_geometry_changed(self, s: SignalContainer):
+        r_angle, r_angle_std = self.image.ring_angle, self.image.ring_angle_str
+        if r_angle is not None and r_angle_std is not None:
+            for k, v in self.segments_dict.items():
+                if (
+                        v.type == RoiParameters.roi_types.ring and
+                        (v.angle != r_angle or
+                         v.angle_std != r_angle_std)
+                ):
+                    self.segments_dict[k] = v._replace(
+                        angle=r_angle, angle_std=r_angle_std)
+                    s.segment_moved(self.segments_dict[k], add_later=True)
 
     def on_status_changed(self, data: StatusChangedContainer):
         self._status_changed_sent = True
@@ -509,14 +519,15 @@ class AppDataHolder(SignalConnector):
         self.emit_downward(s)
 
     def add_segment(self, segment: RoiParameters) -> SegmentSignalData:
+        r_angle, r_angle_std = self.image.ring_angle, self.image.ring_angle_str
         if segment.key is not None:
             new_key = segment.key
-            segment = segment._replace(angle=self.init_angle,
-                                       angle_std=self.init_angle_std)
+            segment = segment._replace(angle=r_angle,
+                                       angle_std=r_angle_std)
         else:
             new_key = self._get_new_key()
-            segment = segment._replace(key=new_key, angle=self.init_angle,
-                                       angle_std=self.init_angle_std)
+            segment = segment._replace(key=new_key, angle=r_angle,
+                                       angle_std=r_angle_std)
         self.segments_dict[new_key] = segment
         return SegmentSignalData(segment)
 

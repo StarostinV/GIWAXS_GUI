@@ -107,6 +107,16 @@ class AngularProfileWidget(BasicROIContainer, Smooth1DPlot):
         self.centralWidget().set_data(self.x, self.angular_profile)
         self._suggest_update(False)
 
+    def send_value_changed(self, value: RoiParameters):
+        # TODO: makes sense to switch to dependency injection scheme with one segments holder.
+        sc = SignalContainer(app_node=self)
+        if value.type == RoiParameters.roi_types.ring:
+            value = value._replace(type=RoiParameters.roi_types.segment)
+            self.roi_dict[value.key].parameters = value
+            sc.type_changed(value)
+        sc.segment_moved(value)
+        sc.send()
+
 
 def get_angular_profile(image: np.array, phi: np.array, rr: np.array,
                         r1: float, r2: float, sigma: float = 0, bins_number: int = 500):
