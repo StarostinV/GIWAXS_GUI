@@ -33,7 +33,7 @@ def get_radial_profile(img, r, sigma: float = 0):
 
     tbin = np.bincount(r.ravel(), img.ravel())
     nr = np.bincount(r.ravel())
-    radial_profile = tbin / nr
+    radial_profile = np.nan_to_num(tbin / nr)
     if sigma:
         radial_profile = gaussian_filter1d(radial_profile, sigma)
     return radial_profile
