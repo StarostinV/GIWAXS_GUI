@@ -1,11 +1,14 @@
-from giwaxs_gui.gui import GiwaxsProgram
+import sys
+import logging
+from PyQt5.QtWidgets import QApplication
 
-if __name__ == '__main__':
-    import sys
-    import logging
-    from PyQt5.QtWidgets import QApplication
+from .gui import GiwaxsProgram
 
-    logging.basicConfig(level=logging.DEBUG)
+__all__ = ['GiwaxsProgram', 'run']
+
+
+def run():
+    logging.basicConfig(level=logging.ERROR)
     app = QApplication(sys.argv)
     window = GiwaxsProgram()
     sys.exit(app.exec_())
