@@ -17,7 +17,7 @@ setup(
     description='A graphical tool for basic analysis of GIWAXS images.',
     long_description=read('README.md'),
     license='GNU',
-    python_requires='>3.6.10',
+    python_requires='>=3.6.*',
     install_requires=[
         'numpy>=1.18.1',
         'matplotlib>=3.1.2',
