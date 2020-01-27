@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 import os
 import gzip
+import logging
 
 import numpy as np
 
 __all__ = ['read_edf', 'read_edf_header',
            'read_edf_from_data', 'read_edf_gz', 'read_header_from_file', 'read_edf_from_file']
+
+logger = logging.getLogger(__name__)
 
 
 def read_edf_from_file(file_path: str):
@@ -58,7 +61,7 @@ def read_edf_header_from_gz(gz_filepath):
 def read_header_from_data(data) -> dict:
     header_end_index = data.find(b'}\n') + 2
     if header_end_index != 1024:
-        print('File has unusual size of header bites %i' % header_end_index)
+        logger.info('File has unusual size of header bites %i' % header_end_index)
     header = data[1:header_end_index].decode('utf-8')
     header_dict = _get_header_dict(header)
     header_dict.update({'headerSize': header_end_index})
