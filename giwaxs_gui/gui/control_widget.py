@@ -17,9 +17,11 @@ logger = logging.getLogger(__name__)
 
 class ControlWidget(BasicROIContainer, QTreeView):
     _DEFAULT_RING_PARAMETERS = dict(radius=10, width=1,
-                                    angle=180, angle_std=360)
+                                    angle=180, angle_std=360,
+                                    type=RoiParameters.roi_types.ring)
     _DEFAULT_ARC_PARAMETERS = dict(radius=10, width=1,
-                                   angle=180, angle_std=180, type='arc')
+                                   angle=180, angle_std=180,
+                                   type=RoiParameters.roi_types.segment)
 
     _RADIUS_RANGE = (0, 2000)
     _WIDTH_RANGE = (0, 1000)
@@ -89,10 +91,10 @@ class ControlWidget(BasicROIContainer, QTreeView):
 
     def emit_create_arc(self, *args):
         params = RoiParameters(**self._DEFAULT_ARC_PARAMETERS,
-                               name=f'ring {self.ring_item.rowCount()}')
+                               name=f'ring segment {self.arc_item.rowCount()}')
         self.__class__.emit_create_segment(self, params)
 
-    def emit_delete_all_of_type(self, roi_type: str):
+    def emit_delete_all_of_type(self, roi_type: int):
         sc = SignalContainer()
         for roi in self.roi_dict.values():
             if roi.parameters.type == roi_type:
@@ -100,22 +102,20 @@ class ControlWidget(BasicROIContainer, QTreeView):
         self.signal_connector.emit_upward(sc)
 
     def emit_delete_all_rings(self):
-        return self.emit_delete_all_of_type('ring')
+        return self.emit_delete_all_of_type(RoiParameters.roi_types.ring)
 
     def emit_delete_all_arcs(self):
-        return self.emit_delete_all_of_type('arc')
+        return self.emit_delete_all_of_type(RoiParameters.roi_types.segment)
 
     def _get_roi(self, params: RoiParameters):
         new_ring_item = QStandardItem()
         new_ring_item.setData(params.key)
 
-        assert params.type in ['ring', 'arc']
-
-        if params.type == 'ring':
+        if params.type == RoiParameters.roi_types.ring:
             new_roi = RingParametersWidget(
                 new_ring_item, self, params, self._RADIUS_RANGE, self._WIDTH_RANGE)
             self.ring_item.appendRow(new_ring_item)
-        elif params.type == 'arc':
+        elif params.type == RoiParameters.roi_types.segment:
             new_roi = RingSegmentParametersWidget(
                 new_ring_item, self, params, self._RADIUS_RANGE, self._WIDTH_RANGE)
             self.arc_item.appendRow(new_ring_item)
@@ -131,3 +131,7 @@ class ControlWidget(BasicROIContainer, QTreeView):
         ring_item = roi.item
         roi.item.parent().removeRow(ring_item.row())
         self._model.layoutChanged.emit()
+
+    def on_type_changed(self, value: RoiParameters):
+        self.delete_roi(self.roi_dict[value.key])
+        self.add_roi(value)
