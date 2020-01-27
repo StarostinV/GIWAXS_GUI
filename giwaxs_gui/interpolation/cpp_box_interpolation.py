@@ -11,8 +11,6 @@ elif platform.system() == 'Linux':
     Path().is_file()
 else:
     DLL_PATH = None
-if DLL_PATH and not DLL_PATH.is_file():
-    DLL_PATH = None
 
 
 def cpp_box_interpolation(intensity, qxy, qz,
