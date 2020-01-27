@@ -2,16 +2,21 @@ import logging
 from functools import wraps
 from typing import NamedTuple
 from pathlib import Path
+from enum import Enum
 
 from PyQt5.QtWidgets import (QGraphicsColorizeEffect, QLineEdit,
-                             QWidget, QLabel,
-                             QApplication, QMessageBox)
+                             QWidget, QApplication, QMessageBox)
 from PyQt5.QtCore import QPropertyAnimation, Qt
 from PyQt5.QtGui import QColor, QIcon
 
-STATIC_PATH = Path(__file__).parents[0] / 'static' / 'icons'
+ICON_PATH = Path(__file__).parents[0] / 'static' / 'icons'
 
 logger = logging.getLogger(__name__)
+
+
+class RoiTypes(Enum):
+    ring = 1
+    segment = 2
 
 
 class RoiParameters(NamedTuple):
@@ -25,7 +30,9 @@ class RoiParameters(NamedTuple):
     movable: bool = True
     fitted: bool = False
     fit_r_parameters: tuple = None
-    type: str = 'ring'
+    type: str = RoiTypes.ring
+
+    roi_types = RoiTypes  # not a field!
 
 
 def save_execute(message: str = '', *, errors: tuple = None,
@@ -53,6 +60,7 @@ def save_execute(message: str = '', *, errors: tuple = None,
 def show_error(err: str, error_title: str):
     mb = QMessageBox()
     mb.setWindowTitle(error_title)
+    logger.info(f'Error message shown: {err}.')
     mb.setWindowIcon(Icon('error'))
     mb.setText(err)
     mb.exec_()
@@ -62,15 +70,8 @@ class Icon(QIcon):
     def __init__(self, name: str):
         if name.find('.') == -1:
             name += '.png'
-        name = str(STATIC_PATH / name)
+        name = str(ICON_PATH / name)
         QIcon.__init__(self, name)
-
-
-class IconWidget(QLabel):
-    def __init__(self, name: str, parent=None):
-        QLabel.__init__(self, parent)
-        icon = Icon(name)
-        self.setPixmap(icon.pixmap(icon.actualSize()))
 
 
 def center_widget(widget):

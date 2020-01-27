@@ -286,11 +286,13 @@ class FolderGroupItem(AbstractGroupItem):
 
 
 class EdfFileItem(AbstractFileItem):
+    @save_execute('Cound not read from edf file', silent=False)
     def get_data(self):
         return get_image_from_path(self.filepath)
 
 
 class TiffFileItem(AbstractFileItem):
+    @save_execute('Cound not read from tiff file', silent=False)
     def get_data(self):
         return get_image_from_path(self.filepath)
 

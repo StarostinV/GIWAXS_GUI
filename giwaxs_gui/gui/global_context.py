@@ -20,6 +20,11 @@ class ImageScale(NamedTuple):
     previous_scale: float = 1.
 
 
+class RingAngles(NamedTuple):
+    angle: float = None
+    angle_std: float = None
+
+
 class UnknownTransformation(ValueError):
     pass
 
@@ -123,6 +128,14 @@ class Image(object):
     def scale_change(self):
         return self.scale / self._scale.previous_scale
 
+    @property
+    def ring_angle(self):
+        return self._ring_angles.angle
+
+    @property
+    def ring_angle_str(self):
+        return self._ring_angles.angle_std
+
     def __init__(self):
         self._source_image = None
         self._image = None
@@ -133,6 +146,7 @@ class Image(object):
         self._beam_center = (0, 0)
         self._geometry = Geometry()
         self._scale = ImageScale()
+        self._ring_angles = RingAngles()
 
     def set_image_limits(self, limits: tuple = None):
         self._intensity_limits = limits
@@ -147,6 +161,8 @@ class Image(object):
             self.update_geometry()
 
     def add_transformation(self, name):
+        if self._image is None:
+            return
         try:
             self.transformation.add_transformation(name)
         except UnknownTransformation:
@@ -177,6 +193,10 @@ class Image(object):
         rr = np.sqrt(xx ** 2 + yy ** 2)
         phi = np.arctan2(yy, xx)
         self._geometry = Geometry(xx, yy, rr, phi, self._beam_center)
+        self._ring_angles = RingAngles(
+            angle=(phi.max() + phi.min()) / 2 * 180 / np.pi,
+            angle_std=(phi.max() - phi.min()) * 180 / np.pi
+        )
 
     def set_scale(self, scale: float, unit: str = ''):
         self._scale = ImageScale(scale, unit, self.scale)

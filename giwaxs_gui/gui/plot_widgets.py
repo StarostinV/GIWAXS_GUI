@@ -4,9 +4,7 @@ import logging
 import numpy as np
 
 from pyqtgraph import CircleROI, LineSegmentROI
-from PyQt5.QtWidgets import (QMainWindow, QWidget,
-                             QVBoxLayout, QCheckBox
-                             )
+from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout)
 from PyQt5.QtCore import pyqtSignal, Qt
 
 from .basic_widgets import CustomImageViewer, AnimatedSlider
@@ -123,7 +121,7 @@ class GiwaxsImageViewer(AbstractROIContainer, CustomImageViewer):
         self.center_roi.set_scale(scale)
 
     def _get_roi(self, params: RoiParameters):
-        return Roi2DRing(params, self.beam_center)
+        return Roi2DRing(params)
 
     def _add_item(self, roi):
         self.image_plot.addItem(roi)
@@ -170,10 +168,6 @@ class GiwaxsImageViewer(AbstractROIContainer, CustomImageViewer):
         if emit_value:
             self.set_beam_center(value)
         self.set_center((value[1], value[0]), pixel_units=True)
-        # self.center_roi.set_center(value)
-        # self.angle_roi.set_center(value)
-        for roi in self.roi_dict.values():
-            roi.set_center(value)
 
 
 class GeometryParametersWidget(QWidget):
@@ -195,6 +189,7 @@ class GeometryParametersWidget(QWidget):
         self.angle_direction = angle_direction
         self.__init__ui__()
         self.setWindowTitle('Set beam center coordinates')
+        self.setWindowIcon(Icon('setup'))
         center_widget(self)
         self.show()
 

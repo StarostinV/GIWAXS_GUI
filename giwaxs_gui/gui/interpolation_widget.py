@@ -6,6 +6,8 @@ from PyQt5.QtWidgets import QMainWindow, QAction
 from .basic_widgets import CustomImageViewer, BasicInputParametersWidget
 from .roi_widgets import AbstractROIContainer, Roi2DRect, EmptyROI
 from .signal_connection import SignalConnector, SignalContainer
+
+from ..config import read_config
 from ..utils import RoiParameters, Icon
 from ..interpolation import convert_image
 
@@ -18,7 +20,7 @@ class InterpolateImageWidget(AbstractROIContainer, QMainWindow):
         AbstractROIContainer.__init__(self, signal_connector)
         QMainWindow.__init__(self, parent)
         self._setup_window = None
-        self._interpolation_parameters = InterpolateSetupWindow.current_default_values()
+        self._interpolation_parameters = read_config(InterpolateSetupWindow.NAME)
         self.setCentralWidget(CustomImageViewer(self))
         self.__init_toolbar__()
         self.update_image()
@@ -93,9 +95,6 @@ class InterpolateImageWidget(AbstractROIContainer, QMainWindow):
 class InterpolateSetupWindow(BasicInputParametersWidget):
     P = BasicInputParametersWidget.InputParameters
 
-    DEFAULT_DICT = dict(r_size=512, phi_size=512,
-                        r_window=0.5, phi_window=0.5)
-
     PARAMETER_TYPES = (P('r_size',
                          'Radius size',
                          int),
@@ -103,8 +102,5 @@ class InterpolateSetupWindow(BasicInputParametersWidget):
                        P('r_window', 'Radius averaging window', float),
                        P('phi_window', 'Phi averaging window', float))
 
-    JSON_FILENAME = 'interpolation_parameters.json'
+    NAME = 'Interpolation parameters'
 
-    @staticmethod
-    def current_default_values():
-        return InterpolateSetupWindow.get_default_values(InterpolateSetupWindow)

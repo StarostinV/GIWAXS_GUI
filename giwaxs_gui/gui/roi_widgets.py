@@ -21,9 +21,11 @@ from .signal_connection import (SignalConnector,
                                 StatusChangedContainer, AppNode)
 from .basic_widgets import (DeleteButton, ControlSlider, RoundedPushButton)
 from ..utils import RoiParameters, Icon
-
+# TODO: split into several files.
 logger = logging.getLogger(__name__)
 
+
+# TODO: wrap into class and provide option for customization and changing colors
 ACTIVE_COLOR = QColor(255, 139, 66, 70)
 ACTIVE_COLOR_BRIGHT = QColor(255, 139, 66)
 INACTIVE_COLOR = QColor(0, 0, 255, 50)
@@ -64,6 +66,8 @@ class AbstractRoiContextMenu(QMenu):
 class RoiContextMenu(AbstractRoiContextMenu):
     def __init_menu__(self):
         self.__init_rename_menu__()
+        self.addSeparator()
+        self.__init_type_menu__()
         self.addSeparator()
         self.__init_fix_menu__()
         self.addSeparator()
@@ -124,10 +128,24 @@ class RoiContextMenu(AbstractRoiContextMenu):
         rename_action.setDefaultWidget(line_edit)
         rename.addAction(rename_action)
 
+    def __init_type_menu__(self):
+        if self.value.type == RoiParameters.roi_types.ring:
+            new_type = RoiParameters.roi_types.segment
+            change_type_name = 'segment'
+        else:
+            new_type = RoiParameters.roi_types.ring
+            change_type_name = 'ring'
+        new_value = self.value._replace(type=new_type)
+        change_type_action = self.addAction(f'Change type to {change_type_name}')
+        change_type_action.triggered.connect(
+            lambda: self.send(('change_roi_type', new_value)))
+
 
 class RadialProfileContextMenu(RoiContextMenu):
     def __init_menu__(self):
         self.__init_rename_menu__()
+        self.addSeparator()
+        self.__init_type_menu__()
         self.addSeparator()
         self.__init_fix_menu__()
         self.addSeparator()
@@ -166,6 +184,8 @@ class AbstractROIContainer(AppNode):
             self._on_status_changed(signal())
         for signal in s.name_changed():
             self.roi_dict[signal().key].set_name(signal().name)
+        for signal in s.type_changed():
+            self.on_type_changed(signal())
 
     @abstractmethod
     def _get_roi(self, params: RoiParameters) -> 'AbstractROI':
@@ -205,9 +225,7 @@ class AbstractROIContainer(AppNode):
     def add_roi(self, params: RoiParameters):
         roi = self._get_roi(params)
         if roi:
-            roi.value_changed.connect(
-                lambda value: self.signal_connector.emit_upward(
-                    SignalContainer().segment_moved(value)))
+            roi.value_changed.connect(self.send_value_changed)
             roi.status_changed.connect(self.emit_status_changed)
             roi.arbitrary_signal.connect(self.signal_connector.emit_upward)
             self.roi_dict[params.key] = roi
@@ -221,6 +239,12 @@ class AbstractROIContainer(AppNode):
 
     def get_selected(self):
         return [roi.parameters for roi in self.roi_dict.values() if roi.active]
+
+    def send_value_changed(self, value: RoiParameters):
+        SignalContainer(app_node=self).segment_moved(value).send()
+
+    def on_type_changed(self, value: RoiParameters):
+        self.roi_dict[value.key].value = value
 
 
 class KeySignalNameError(ValueError):
@@ -282,6 +306,10 @@ class BasicROIContainer(AbstractROIContainer):
         keys = list(self.roi_dict.keys())
         sc.status_changed(StatusChangedContainer(keys, False, False))
         sc.send()
+
+    def change_roi_type(self, value: RoiParameters):
+        self.on_type_changed(value)
+        SignalContainer(app_node=self).type_changed(value).send()
 
 
 def set_fixed_decorator(func):
@@ -617,8 +645,8 @@ class Roi2DRect(AbstractROI, RectROI):
 class Roi2DRing(AbstractROI, ROI):
     _USE_BRIGHT_COLOR = True
 
-    def __init__(self, value, beam_center: tuple, parent=None):
-        self._center = beam_center
+    def __init__(self, value, parent=None):
+        self._center = (0, 0)
         self._radius = value.radius
         self._width = value.width
         self._angle = value.angle

@@ -14,6 +14,7 @@ from .basic_widgets import (BasicInputParametersWidget, ConfirmButton,
 from .signal_connection import SignalConnector, SignalContainer
 from .roi_widgets import Roi1D, BasicROIContainer
 
+from ..config import read_config
 from ..interpolation import get_radial_profile
 from ..utils import Icon, RoiParameters, show_error
 
@@ -31,7 +32,7 @@ class RadialProfileWidget(BasicROIContainer, Smooth1DPlot):
         self.radial_profile = None
         self._peaks_setup = None
         self.x_axis = None
-        self._fit_parameters_dict = PeaksSetupWindow.values_from_config()
+        self._fit_parameters_dict = read_config(PeaksSetupWindow.NAME)
         self.update_image()
 
     def __init_toolbars__(self):
@@ -94,6 +95,7 @@ class RadialProfileWidget(BasicROIContainer, Smooth1DPlot):
             self.update_image()
 
     def find_peaks(self):
+        # TODO show message if number of peaks exceeds max number and suggest to increase sigma.
         if self._fit_parameters_dict.get('sigma_find', None) is not None:
             self.set_sigma(self._fit_parameters_dict['sigma_find'])
         peaks = find_peaks(self.radial_profile)[0]
@@ -210,9 +212,6 @@ class RadialProfileWidget(BasicROIContainer, Smooth1DPlot):
 class PeaksSetupWindow(BasicInputParametersWidget):
     P = BasicInputParametersWidget.InputParameters
 
-    DEFAULT_DICT = dict(max_peaks_number=25, init_width=30,
-                        sigma_find=10, sigma_fit=0)
-
     PARAMETER_TYPES = (P('max_peaks_number',
                          'Maximum number of peaks',
                          int, 'Do not recommended to put high numbers'),
@@ -230,7 +229,7 @@ class PeaksSetupWindow(BasicInputParametersWidget):
                          'leave empty.', True)
                        )
 
-    JSON_FILENAME = 'radial_peaks_fitting_parameters.json'
+    NAME = 'Fitting parameters'
 
 
 class FitParameters(object):

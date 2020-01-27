@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-import json
 import logging
 from abc import abstractmethod
 from collections import namedtuple
-from pathlib import Path
 
 import numpy as np
 
@@ -19,6 +17,7 @@ from PyQt5.QtCore import Qt, pyqtSignal, QRect
 from pyqtgraph import (GraphicsLayoutWidget, setConfigOptions,
                        ImageItem, HistogramLUTItem)
 
+from ..config import read_config, save_config
 from ..utils import (color_animation, QIcon, Icon,
                      center_widget, validate_scientific_value)
 
@@ -47,6 +46,7 @@ class Custom1DPlot(GraphicsLayoutWidget):
 
 
 class Smooth1DPlot(QMainWindow):
+    # TODO: smoothing should be independent from update_image and fast.
     _MaximumSliderWidth = 200
     _MaximumSliderHeight = 30
 
@@ -113,6 +113,8 @@ class CustomImageViewer(GraphicsLayoutWidget):
         self.addItem(self.hist)
 
     def set_data(self, data, change_limits: bool = True, reset_axes: bool = False):
+        if data is None:
+            return
         self.image_item.setImage(data, change_limits)
         if change_limits:
             self.hist.setLevels(data.min(), data.max())
@@ -628,30 +630,22 @@ class InfoButton(RoundedPushButton):
 class AbstractInputParametersWidget(QWidget):
     InputParameters = namedtuple('InputParameters', 'name label type info none')
     InputParameters.__new__.__defaults__ = (False, None,)
-    JSON_FILENAME = None  # should redefine
-
-    @property
-    @abstractmethod
-    def DEFAULT_DICT(self):
-        pass
 
     @property
     @abstractmethod
     def PARAMETER_TYPES(self):
         pass
 
-    # @property
-    # @abstractmethod
-    # def JSON_FILENAME(self):
-    #     pass
-
     @property
-    def path(self):
-        return Path(__file__).parents[1] / 'config' / str(self.JSON_FILENAME)
+    @abstractmethod
+    def NAME(self):
+        pass
 
     def __init__(self, parent=None):
         super(AbstractInputParametersWidget, self).__init__(parent)
-        self.default_dict = self.get_default_values()
+        self.setWindowIcon(Icon('setup'))
+        self.setWindowTitle(self.NAME)
+        self.default_dict = self.dict_from_config()
 
     def get_parameters_dict(self):
         parameters_dict = dict()
@@ -662,38 +656,11 @@ class AbstractInputParametersWidget(QWidget):
             parameters_dict[p.name] = value
         return parameters_dict
 
-    def get_default_values(self, default_dict: dict = None):
-        default_dict = default_dict or self.DEFAULT_DICT.copy()
-        saved_dict = self._read_config(self.path)
-        default_dict.update(saved_dict)
-        return default_dict
+    def dict_from_config(self):
+        return read_config(self.NAME)
 
-    @classmethod
-    def values_from_config(cls):
-        return cls._read_config(cls.path)
-
-    @staticmethod
-    def _read_config(path):
-        try:
-            with open(path, 'r') as fp:
-                saved_dict = json.load(fp)
-                if type(saved_dict) is not dict:
-                    logger.error(f'JSON object is not dict:\n{saved_dict}')
-                    saved_dict = dict()
-        except FileNotFoundError:
-            saved_dict = dict()
-            # self.save_default_dict(default_dict)
-        except Exception as err:
-            logger.error(err)
-            saved_dict = dict()
-        return saved_dict
-
-    def save_default_dict(self, default_dict: dict):
-        try:
-            with open(self.path, 'w') as fp:
-                json.dump(default_dict, fp)
-        except Exception as err:
-            logger.error(err)
+    def save_to_config(self, parameters_dict: dict):
+        save_config(self.NAME, parameters_dict)
 
     def _get_layout(self,
                     input_parameter: 'InputParameters'):
@@ -754,7 +721,7 @@ class BasicInputParametersWidget(AbstractInputParametersWidget):
             self.apply_signal.emit(parameters_dict)
             logger.debug(parameters_dict)
             if self.save_button.isChecked():
-                self.save_default_dict(parameters_dict)
+                self.save_to_config(parameters_dict)
             self.close()
 
     def close(self):
