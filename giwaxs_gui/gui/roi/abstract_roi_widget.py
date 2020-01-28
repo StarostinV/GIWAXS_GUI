@@ -80,7 +80,7 @@ class AbstractROI(object):
             self.send_inactive()
         else:
             self.send_active(change_others)
-
+# TODO: replace by abstractmethod s: set_color(), set_movable(bool)
     @abstractmethod
     def set_fixed(self):
         pass
