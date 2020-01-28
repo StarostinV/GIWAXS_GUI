@@ -5,7 +5,9 @@ import numpy as np
 from scipy.ndimage import gaussian_filter1d
 
 from .signal_connection import SignalContainer, SignalConnector, StatusChangedContainer
-from .roi_widgets import BasicROIContainer, Roi1DAngular
+from .roi.roi_widgets import Roi1DAngular
+from .roi.roi_containers import BasicROIContainer
+
 from .basic_widgets import Smooth1DPlot
 from ..utils import RoiParameters, Icon
 

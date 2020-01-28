@@ -4,7 +4,8 @@ import logging
 from PyQt5.QtWidgets import QMainWindow, QAction
 
 from .basic_widgets import CustomImageViewer, BasicInputParametersWidget
-from .roi_widgets import AbstractROIContainer, Roi2DRect, EmptyROI
+from .roi.roi_widgets import EmptyROI, Roi2DRect
+from .roi.roi_containers import AbstractROIContainer
 from .signal_connection import SignalConnector, SignalContainer
 
 from ..config import read_config

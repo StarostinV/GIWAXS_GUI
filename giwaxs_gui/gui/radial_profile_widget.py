@@ -12,7 +12,8 @@ from PyQt5.QtGui import QColor
 from .basic_widgets import (BasicInputParametersWidget, ConfirmButton,
                             RoundedPushButton, Smooth1DPlot)
 from .signal_connection import SignalConnector, SignalContainer
-from .roi_widgets import Roi1D, BasicROIContainer
+from .roi.roi_widgets import Roi1D
+from .roi.roi_containers import BasicROIContainer
 
 from ..config import read_config
 from ..interpolation import get_radial_profile

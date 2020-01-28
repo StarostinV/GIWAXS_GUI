@@ -7,7 +7,8 @@ from PyQt5.QtGui import QStandardItem, QStandardItemModel
 
 from .basic_widgets import (RoundedPushButton,
                             DeleteButton)
-from .roi_widgets import RingParametersWidget, RingSegmentParametersWidget, BasicROIContainer
+from .roi.roi_widgets import RingParametersWidget, RingSegmentParametersWidget
+from .roi.roi_containers import BasicROIContainer
 from .signal_connection import (SignalConnector,
                                 SignalContainer)
 from ..utils import Icon, RoiParameters

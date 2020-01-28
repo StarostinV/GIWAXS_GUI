@@ -9,7 +9,8 @@ from PyQt5.QtCore import pyqtSignal, Qt
 
 from .basic_widgets import CustomImageViewer, AnimatedSlider
 from .signal_connection import SignalConnector, SignalContainer, AppNode
-from .roi_widgets import Roi2DRing, AbstractROIContainer
+from .roi.roi_widgets import Roi2DRing
+from .roi.roi_containers import AbstractROIContainer
 from ..utils import Icon, center_widget, RoiParameters
 
 logger = logging.getLogger(__name__)

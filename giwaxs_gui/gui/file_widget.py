@@ -12,7 +12,8 @@ from PyQt5.QtCore import Qt, QItemSelectionModel
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 
 from .basic_widgets import RoundedPushButton
-from .roi_widgets import BasicROIContainer, AbstractROI, EmptyROI, FileWidgetRoi
+from .roi.roi_widgets import EmptyROI, FileWidgetRoi
+from .roi.roi_containers import BasicROIContainer
 from .signal_connection import SignalConnector, SignalContainer, StatusChangedContainer
 
 from ..read_data import get_image_from_path
