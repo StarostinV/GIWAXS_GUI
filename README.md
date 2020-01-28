@@ -8,6 +8,7 @@ data and its specific needs.
 
 ## Install
 ### Pip install 
+
 To install current release via pip, you should have python installed 
 on your computer. The minimum required version is 3.6.0. Install package via pip:
 
@@ -16,8 +17,66 @@ pip install giwaxs-gui
 ```
 
 After installation you can launch the program:
+
 ```sh
 python
 >>>from giwaxs_gui import run
 >>>run()
 ```
+
+## Usage
+### Overview
+
+![overview](giwaxs_gui/static/readme/gui-overview-2.png)
+
+The program allows to find and fit circular segments of higher intensities and
+discover their radial and angular positions for further analysis. 
+
+The graphical interface consists of several functional widgets that can be dragged 
+over the window,
+resized and hidden to optimize the analysis. One can show/hide widgets by clicking on corresponding 
+icons on the top left widget toolbar. Main widgets are:
+
+* File manager (left)
+* Image viewer (top center)
+* Radial and angular profiles (bottom right)
+* Control widget (top right)
+* Interpolation widget (not shown)
+
+In the following some of these widgets are described in detail.
+
+### File manager
+
+![file-manager](giwaxs_gui/static/readme/file-manager.png)
+
+File manager allows to add files and folders to the file tree. Image viewer 
+automatically updates image based on selected file. It also shows Properties item containing
+info about measurement geometry and added segments. All the changes are held by
+file widget which allows processing many images simultaneously. The data and 
+found segments can be saved to .h5 file.
+
+#### Available extensions
+
+Available files extensions to read from:
+
+* .tif(f)
+* .edf
+* .h5
+
+Both H5 files parsing and folder parsing are designed in a way that it
+reads only the content of groups/folders which are selected. It may help reading huge 
+files if they are well structured.
+
+### Image viewer
+
+![image-viewer](giwaxs_gui/static/readme/image-viewer.png)
+
+Image viewer provides options for setting geometry (beam center, 
+axes scale, image transformations - geometry toolbar on top left) 
+and adopting the view by changing the colormap
+and its bounds (histogram widget on the right). An added segment 
+immediately appears on the image viewer.
+
+### Radial profile
+
+![radial-profile](giwaxs_gui/static/readme/radial-profile.png)
