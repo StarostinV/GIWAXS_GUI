@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from abc import abstractmethod
 
-from ..exceptions.roi import KeySignalNameError
+from ..exceptions import KeySignalNameError
 from ..signal_connection import (AppNode, SignalConnector, SignalContainer,
                                  StatusChangedContainer)
 from ...utils import RoiParameters

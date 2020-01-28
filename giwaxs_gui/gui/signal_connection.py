@@ -9,7 +9,7 @@ import numpy as np
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
-from .exceptions.signals import SignalNotFoundError, AppNodeNotProvidedError
+from .exceptions import SignalNotFoundError, AppNodeNotProvidedError
 from .global_context import Image
 from ..utils import RoiParameters
 

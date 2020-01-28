@@ -3,7 +3,7 @@ import logging
 
 import numpy as np
 
-from giwaxs_gui.gui.exceptions import UnknownTransformation
+from .exceptions import UnknownTransformation
 
 logger = logging.getLogger(__name__)
 
