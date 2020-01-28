@@ -8,6 +8,7 @@ __all__ = ['GiwaxsProgram', 'run']
 
 
 def run():
+    # TODO: add logging config
     logging.basicConfig(level=logging.ERROR)
     app = QApplication(sys.argv)
     window = GiwaxsProgram()
