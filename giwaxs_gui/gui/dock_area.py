@@ -9,7 +9,7 @@ from .plot_widgets import Basic2DImageWidget
 from .interpolation_widget import InterpolateImageWidget
 from .radial_profile_widget import RadialProfileWidget
 from .angular_profile_widget import AngularProfileWidget
-from .file_widget import FileWidget
+from .file_manager import FileWidget
 
 logger = logging.getLogger(__name__)
 
