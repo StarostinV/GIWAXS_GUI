@@ -1,6 +1,5 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 from pathlib import Path
-from setuptools import find_packages
 
 
 def read(filename: str):
@@ -30,5 +29,5 @@ setup(
     ],
     include_package_data=True,
     keywords='xray python giwaxs scientific-analysis',
-    url='http://packages.python.org/giwaxs_gui',
+    url='https://pypi.org/project/giwaxs-gui/',
 )
