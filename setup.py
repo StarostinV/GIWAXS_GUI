@@ -4,7 +4,7 @@ from setuptools import find_packages
 
 
 def read(filename: str):
-    with open(Path(__file__).parent / filename, 'r') as f:
+    with open(Path(__file__).parent / filename, mode='r', encoding='utf-8') as f:
         return f.read()
 
 
@@ -16,6 +16,7 @@ setup(
     author_email='vladimir.starostin@uni-tuebingen.de',
     description='A graphical tool for basic analysis of GIWAXS images.',
     long_description=read('README.md'),
+    long_description_content_type='text/markdown',
     license='GNU',
     python_requires='>=3.6.*',
     install_requires=[
