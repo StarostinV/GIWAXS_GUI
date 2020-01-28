@@ -3,6 +3,8 @@ import logging
 
 import numpy as np
 
+from giwaxs_gui.gui.exceptions import UnknownTransformation
+
 logger = logging.getLogger(__name__)
 
 
@@ -23,10 +25,6 @@ class ImageScale(NamedTuple):
 class RingAngles(NamedTuple):
     angle: float = None
     angle_std: float = None
-
-
-class UnknownTransformation(ValueError):
-    pass
 
 
 class ImageTransformation(object):

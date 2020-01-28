@@ -9,6 +9,7 @@ import numpy as np
 
 from PyQt5.QtCore import QObject, pyqtSignal
 
+from .exceptions.signals import SignalNotFoundError, AppNodeNotProvidedError
 from .global_context import Image
 from ..utils import RoiParameters
 
@@ -49,14 +50,6 @@ _SPECIAL_SIGNAL_TYPES = {
     SignalKeys._geometry_changed_key: 'exceptForNames',
     SignalKeys._type_changed_key: 'exceptForNames'
 }
-
-
-class SignalNotFoundError(ValueError):
-    pass
-
-
-class AppNodeNotProvidedError(ValueError):
-    pass
 
 
 class BasicSignalContainer(object):
