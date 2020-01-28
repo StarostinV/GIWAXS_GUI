@@ -11,13 +11,13 @@ def read(filename: str):
 setup(
     name='giwaxs_gui',
     packages=find_packages(),
-    version='0.0.3',
+    version='0.0.5',
     author='Vladimir Starostin',
     author_email='vladimir.starostin@uni-tuebingen.de',
     description='A graphical tool for basic analysis of GIWAXS images.',
     long_description=read('README.md'),
     long_description_content_type='text/markdown',
-    license='GNU',
+    license='GPLv3',
     python_requires='>=3.6.*',
     install_requires=[
         'numpy>=1.18.1',
