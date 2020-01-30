@@ -443,6 +443,12 @@ class RingParametersWidget(AbstractROI, QWidget):
             self.radius_slider.set_unfixed()
             self.width_slider.set_unfixed()
 
+    def set_radius_bounds(self, bounds: tuple, change_value: bool = False):
+        self.radius_slider.set_bounds(bounds, change_value)
+
+    def set_width_bounds(self, bounds: tuple, change_value: bool = False):
+        self.width_slider.set_bounds(bounds, change_value)
+
 
 class RingSegmentParametersWidget(RingParametersWidget):
     @property

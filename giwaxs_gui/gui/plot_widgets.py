@@ -108,8 +108,6 @@ class GiwaxsImageViewer(AbstractROIContainer, CustomImageViewer):
             self.set_data(self.image.image, change_limits=False)
         for _ in s.geometry_changed():
             self.update_beam_center(self.image.beam_center, emit_value=False)
-        for _ in s.scale_changed():
-            self._on_scale_changed()
 
     def _on_limits_changed(self):
         levels = self.get_levels()

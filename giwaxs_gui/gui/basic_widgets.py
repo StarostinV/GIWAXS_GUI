@@ -444,7 +444,8 @@ class AnimatedSlider(RoundedPushButton):
                  decimals: int = 0,
                  hide: bool = True,
                  context_menu_enabled: bool = True,
-                 disable_changing_status: bool = False):
+                 disable_changing_status: bool = False,
+                 min_max_bounds: tuple = (-1e10, 1e10)):
 
         super(AnimatedSlider, self).__init__(parent)
         self.context_menu_enabled = context_menu_enabled
@@ -455,9 +456,14 @@ class AnimatedSlider(RoundedPushButton):
         self.__init_ui__(orientation)
         self.clicked.connect(self.on_clicked)
         self._status = 'show'
+        self._min_max_bounds = min_max_bounds
         self._disable_changing_status = disable_changing_status
         if hide:
             self.hide_and_show('hide')
+
+    def set_min_max_bounds(self, bounds: tuple):
+        if bounds[0] < bounds[1]:
+            self._min_max_bounds = bounds
 
     def on_clicked(self):
         self.hide_and_show()
@@ -471,18 +477,18 @@ class AnimatedSlider(RoundedPushButton):
         menu.setWindowFlags(menu.windowFlags() | Qt.FramelessWindowHint | Qt.NoDropShadowWindowHint)
         menu.setAttribute(Qt.WA_TranslucentBackground)
         menu.setStyleSheet("QMenu{background:rgba(255, 255, 255, 0%);}")
-        # TODO: make interface for changing minimum and maximum values for sliders.
+
         decimals_slider = AnimatedSlider(
             'Decimals', (0, 6), self._decimals, hide=False,
             context_menu_enabled=False,
             disable_changing_status=True
         )
         min_slider = AnimatedSlider(
-            'Min value', (-10000, self.slider.maximum()),
+            'Min value', (self._min_max_bounds[0], self.slider.maximum()),
             self.slider.minimum(), hide=False,
             context_menu_enabled=False, disable_changing_status=True)
         max_slider = AnimatedSlider(
-            'Max value', (self.slider.minimum(), 10000),
+            'Max value', (self.slider.minimum(), self._min_max_bounds[1]),
             self.slider.maximum(), hide=False,
             context_menu_enabled=False, disable_changing_status=True)
         decimals_slider.valueChanged.connect(self.set_decimals)
@@ -501,11 +507,25 @@ class AnimatedSlider(RoundedPushButton):
         menu.exec_(self.mapToGlobal(event.pos()))
 
     def set_decimals(self, value):
-        value = int(value)
+        try:
+            value = int(value)
+        except ValueError as err:
+            logger.exception(err)
+            return
         self.slider.set_decimals(value)
         self._decimals = value
         self.editValue.setText(self._get_str_value())
         self._update_label_text()
+
+    def set_bounds(self, bounds: tuple, change_value: bool = False):
+        try:
+            self.slider.setRange(*bounds)
+        except ValueError as err:
+            if not change_value:
+                logger.exception(err)
+            else:
+                self.slider.setValue(bounds[0])
+                self.slider.setRange(*bounds)
 
     def hide_and_show(self, new_status: str = None):
         if self._disable_changing_status:

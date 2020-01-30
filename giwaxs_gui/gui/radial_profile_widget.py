@@ -89,11 +89,12 @@ class RadialProfileWidget(BasicROIContainer, Smooth1DPlot):
             update_image = True
         for _ in s.geometry_changed():
             update_image = True
-        for _ in s.scale_changed():
-            self.update_x_axis()
         BasicROIContainer.process_signal(self, s)
         if update_image:
             self.update_image()
+
+    def _on_scale_changed(self):
+        self.update_x_axis()
 
     def find_peaks(self):
         # TODO show message if number of peaks exceeds max number and suggest to increase sigma.

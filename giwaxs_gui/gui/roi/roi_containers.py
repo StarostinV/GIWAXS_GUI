@@ -14,6 +14,8 @@ class AbstractROIContainer(AppNode):
         self.roi_dict = dict()
 
     def process_signal(self, s: SignalContainer):
+        for _ in s.scale_changed():
+            self._on_scale_changed()
         for signal in s.segment_created():
             self.add_roi(signal())
         for signal in s.segment_moved():
@@ -30,6 +32,9 @@ class AbstractROIContainer(AppNode):
             self.roi_dict[signal().key].set_name(signal().name)
         for signal in s.type_changed():
             self.on_type_changed(signal())
+
+    def _on_scale_changed(self):
+        pass
 
     @abstractmethod
     def _get_roi(self, params: RoiParameters) -> 'AbstractROI':

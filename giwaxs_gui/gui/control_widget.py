@@ -1,5 +1,7 @@
 import logging
 
+import numpy as np
+
 from PyQt5.QtWidgets import (QWidget, QHBoxLayout,
                              QTreeView, QLabel)
 from PyQt5.QtCore import Qt
@@ -17,15 +19,6 @@ logger = logging.getLogger(__name__)
 
 
 class ControlWidget(BasicROIContainer, QTreeView):
-    _DEFAULT_RING_PARAMETERS = dict(radius=10, width=1,
-                                    angle=180, angle_std=360,
-                                    type=RoiParameters.roi_types.ring)
-    _DEFAULT_ARC_PARAMETERS = dict(radius=10, width=1,
-                                   angle=180, angle_std=180,
-                                   type=RoiParameters.roi_types.segment)
-
-    _RADIUS_RANGE = (0, 2000)
-    _WIDTH_RANGE = (0, 1000)
 
     def __init__(self, signal_connector: SignalConnector, parent=None):
         BasicROIContainer.__init__(self, signal_connector)
@@ -36,7 +29,18 @@ class ControlWidget(BasicROIContainer, QTreeView):
         self.setModel(self._model)
         self.selectionModel().currentChanged.connect(self.on_clicked)
 
-        # self.clicked.connect(self.on_clicked)
+        # the following variables will be wisely redefined when geometry is changed
+        self._radius_bounds = np.array([0, 2000])
+        self._width_bounds = np.array([0, 200])
+
+        # TODO: common place to store init parameters for new rois ?
+        self._default_ring_parameters = dict(
+            radius=10, width=1, angle=180, angle_std=360,
+            type=RoiParameters.roi_types.ring)
+        self._default_segment_parameters = dict(
+            radius=10, width=1, angle=180, angle_std=180,
+            type=RoiParameters.roi_types.segment)
+
         self.__init_ui__()
         self.show()
 
@@ -67,6 +71,19 @@ class ControlWidget(BasicROIContainer, QTreeView):
         self.setColumnWidth(0, 250)
         self.header().resizeSection(0, 100)
 
+    def process_signal(self, s: SignalContainer):
+        for _ in s.geometry_changed():
+            self._on_geometry_changed()
+        super().process_signal(s)
+
+    def _on_geometry_changed(self):
+        if self.image.rr is not None:
+            self._radius_bounds = np.array([self.image.rr.min() * self.image.scale,
+                                            self.image.rr.max() * self.image.scale])
+            self._width_bounds = np.array([0, self.image.rr.max() * self.image.scale / 10])
+            self._default_ring_parameters['radius'] = self._radius_bounds.sum() / 2
+            self._default_ring_parameters['width'] = self._radius_bounds.sum() / 10
+
     def _get_header_layout(self, item: QStandardItem, label: str):
         header_widget = QWidget(self)
         layout = QHBoxLayout()
@@ -86,12 +103,12 @@ class ControlWidget(BasicROIContainer, QTreeView):
             selected_roi.send_active()
 
     def emit_create_ring(self, *args):
-        params = RoiParameters(**self._DEFAULT_RING_PARAMETERS,
+        params = RoiParameters(**self._default_ring_parameters,
                                name=f'ring {self.ring_item.rowCount()}')
         self.__class__.emit_create_segment(self, params)
 
     def emit_create_arc(self, *args):
-        params = RoiParameters(**self._DEFAULT_ARC_PARAMETERS,
+        params = RoiParameters(**self._default_segment_parameters,
                                name=f'ring segment {self.arc_item.rowCount()}')
         self.__class__.emit_create_segment(self, params)
 
@@ -114,11 +131,13 @@ class ControlWidget(BasicROIContainer, QTreeView):
 
         if params.type == RoiParameters.roi_types.ring:
             new_roi = RingParametersWidget(
-                new_ring_item, self, params, self._RADIUS_RANGE, self._WIDTH_RANGE)
+                new_ring_item, self, params,
+                tuple(self._radius_bounds),  tuple(self._width_bounds))
             self.ring_item.appendRow(new_ring_item)
         elif params.type == RoiParameters.roi_types.segment:
             new_roi = RingSegmentParametersWidget(
-                new_ring_item, self, params, self._RADIUS_RANGE, self._WIDTH_RANGE)
+                new_ring_item, self, params,
+                tuple(self._radius_bounds), tuple(self._width_bounds))
             self.arc_item.appendRow(new_ring_item)
         self._model.layoutChanged.emit()
         return new_roi
@@ -136,3 +155,10 @@ class ControlWidget(BasicROIContainer, QTreeView):
     def on_type_changed(self, value: RoiParameters):
         self.delete_roi(self.roi_dict[value.key])
         self.add_roi(value)
+
+    def _on_scale_changed(self):
+        self._radius_bounds = self._radius_bounds * self.image.scale_change
+        self._width_bounds = self._width_bounds * self.image.scale_change
+        for v in self.roi_dict.values():
+            v.set_radius_bounds(self._radius_bounds)
+            v.set_width_bounds(self._width_bounds)
