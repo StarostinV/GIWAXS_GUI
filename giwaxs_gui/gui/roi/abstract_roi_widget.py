@@ -67,26 +67,36 @@ class AbstractROI(object):
         if self.value != value:
             self.value = value
 
-    @abstractmethod
     def set_active(self):
-        pass
+        self._active = True
+        self.set_color(self.color)
 
-    @abstractmethod
     def set_inactive(self):
-        pass
+        self._active = False
+        self.set_color(self.color)
 
     def change_active(self, change_others: bool = True):
         if self._active:
             self.send_inactive()
         else:
             self.send_active(change_others)
-# TODO: replace by abstractmethod s: set_color(), set_movable(bool)
-    @abstractmethod
+
     def set_fixed(self):
+        self.parameters = self.parameters._replace(movable=False)
+        self.set_movable(False)
+        self.set_color(self.color)
+
+    def set_unfixed(self):
+        self.parameters = self.parameters._replace(movable=True)
+        self.set_movable(True)
+        self.set_color(self.color)
+
+    @abstractmethod
+    def set_color(self, color):
         pass
 
     @abstractmethod
-    def set_unfixed(self):
+    def set_movable(self, movable: bool):
         pass
 
     def send_value(self):

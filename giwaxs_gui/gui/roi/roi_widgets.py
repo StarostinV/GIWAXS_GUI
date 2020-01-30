@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import weakref
-from functools import wraps
 
 import numpy as np
 
@@ -14,26 +13,6 @@ from .abstract_roi_widget import AbstractROI
 from .roi_menu import RadialProfileContextMenu, RoiContextMenu
 from ..basic_widgets import ControlSlider, RoundedPushButton, DeleteButton
 from ...utils import RoiParameters, Icon
-
-
-def set_fixed_decorator(func):
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        self.parameters = self.parameters._replace(movable=False)
-        # self.set_inactive()
-        return func(self, *args, **kwargs)
-
-    return wrapper
-
-
-def set_unfixed_decorator(func):
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        self.parameters = self.parameters._replace(movable=True)
-        # self.set_inactive()
-        return func(self, *args, **kwargs)
-
-    return wrapper
 
 
 class EmptyROI(AbstractROI, QObject):
@@ -60,6 +39,12 @@ class EmptyROI(AbstractROI, QObject):
         pass
 
     def set_unfixed(self):
+        pass
+
+    def set_color(self, color):
+        pass
+
+    def set_movable(self, movable: bool):
         pass
 
 
@@ -96,18 +81,16 @@ class Roi1D(AbstractROI, LinearRegionItem):
             x1, x2 = r - w / 2, r + w / 2
             self.setRegion((x1, x2))
 
-    @set_fixed_decorator
     def set_fixed(self):
-        self.setMovable(False)
         self.setZValue(self._FIXED_Z)
-        self.setBrush(self.color)
+        super().set_fixed()
+
+    def set_color(self, color):
+        self.setBrush(color)
         self.viewRangeChanged()
 
-    @set_unfixed_decorator
-    def set_unfixed(self):
-        self.setMovable(True)
-        self.setBrush(self.color)
-        self.viewRangeChanged()
+    def set_movable(self, movable: bool):
+        self.setMovable(movable)
 
     def mouseDragEvent(self, ev):
         if not ev.modifiers() == Qt.ShiftModifier:
@@ -138,16 +121,12 @@ class Roi1D(AbstractROI, LinearRegionItem):
         RadialProfileContextMenu(self)
 
     def set_active(self):
-        self._active = True
-        self.setBrush(self.color)
-        self.viewRangeChanged()
         self.setZValue(self._ACTIVE_Z)
+        super().set_active()
 
     def set_inactive(self):
-        self._active = False
-        self.setBrush(self.color)
-        self.viewRangeChanged()
         self.setZValue(self._INACTIVE_Z)
+        super().set_inactive()
 
 
 class Roi1DAngular(Roi1D):
@@ -217,27 +196,15 @@ class Roi2DRect(AbstractROI, RectROI):
             self.setSize(size)
             self.setPos(pos)
 
-    @set_fixed_decorator
-    def set_fixed(self):
-        self.translatable = False
-        self.setPen(self.color)
+    def set_color(self, color):
+        self.setPen(color)
 
-    @set_unfixed_decorator
-    def set_unfixed(self):
-        self.translatable = True
-        self.setPen(self.color)
+    def set_movable(self, movable: bool):
+        self.translatable = movable
 
     def mouseDragEvent(self, ev):
         RectROI.mouseDragEvent(self, ev)
         self.send_value()
-
-    def set_active(self):
-        self._active = True
-        self.setPen(self.color)
-
-    def set_inactive(self):
-        self._active = False
-        self.setPen(self.color)
 
 
 class Roi2DRing(AbstractROI, ROI):
@@ -275,21 +242,11 @@ class Roi2DRing(AbstractROI, ROI):
             if value.angle_std is not None:
                 self.set_angle_std(value.angle_std)
 
-    def set_active(self):
-        self._active = True
-        self.setPen(self.color)
+    def set_color(self, color):
+        self.setPen(color)
 
-    def set_inactive(self):
-        self._active = False
-        self.setPen(self.color)
-
-    @set_fixed_decorator
-    def set_fixed(self):
-        self.setPen(self.color)
-
-    @set_unfixed_decorator
-    def set_unfixed(self):
-        self.setPen(self.color)
+    def set_movable(self, movable: bool):
+        pass
 
     def set_center(self, center: tuple):
         self._center = center
@@ -475,15 +432,16 @@ class RingParametersWidget(AbstractROI, QWidget):
             self.radius_slider.hide_and_show('hide')
             self.width_slider.hide_and_show('hide')
 
-    @set_fixed_decorator
-    def set_fixed(self):
-        self.radius_slider.set_fixed()
-        self.width_slider.set_fixed()
+    def set_color(self, color):
+        pass
 
-    @set_unfixed_decorator
-    def set_unfixed(self):
-        self.radius_slider.set_unfixed()
-        self.width_slider.set_unfixed()
+    def set_movable(self, movable: bool):
+        if not movable:
+            self.radius_slider.set_fixed()
+            self.width_slider.set_fixed()
+        else:
+            self.radius_slider.set_unfixed()
+            self.width_slider.set_unfixed()
 
 
 class RingSegmentParametersWidget(RingParametersWidget):
@@ -558,6 +516,18 @@ class RingSegmentParametersWidget(RingParametersWidget):
             self.angle_slider.hide_and_show('hide')
             self.angle_std_slider.hide_and_show('hide')
 
+    def set_movable(self, movable: bool):
+        if not movable:
+            self.radius_slider.set_fixed()
+            self.width_slider.set_fixed()
+            self.angle_slider.set_fixed()
+            self.angle_std_slider.set_fixed()
+        else:
+            self.radius_slider.set_unfixed()
+            self.width_slider.set_unfixed()
+            self.angle_slider.set_unfixed()
+            self.angle_std_slider.set_unfixed()
+
 
 class FileWidgetRoi(AbstractROI, QObject):
     _USE_BRIGHT_COLOR = True
@@ -583,23 +553,12 @@ class FileWidgetRoi(AbstractROI, QObject):
     def value(self, value: RoiParameters):
         self.parameters = value
 
-    def set_active(self):
-        if not self._active:
-            self._active = True
-            self.item.setData(self.color, Qt.ForegroundRole)
+    def set_color(self, color):
+        if self.item:
+            self.item.setData(color, Qt.ForegroundRole)
 
-    def set_inactive(self):
-        if self._active:
-            self._active = False
-            self.item.setData(self.color, Qt.ForegroundRole)
-
-    @set_fixed_decorator
-    def set_fixed(self):
-        self.item.setData(self.color, Qt.ForegroundRole)
-
-    @set_unfixed_decorator
-    def set_unfixed(self):
-        self.item.setData(self.color, Qt.ForegroundRole)
+    def set_movable(self, movable: bool):
+        pass
 
     def set_name(self, name: str):
         super().set_name(name)
