@@ -6,7 +6,8 @@ import logging
 import numpy as np
 
 __all__ = ['read_edf', 'read_edf_header',
-           'read_edf_from_data', 'read_edf_gz', 'read_header_from_file', 'read_edf_from_file']
+           'read_edf_from_data', 'read_edf_gz',
+           'read_header_from_file', 'read_edf_from_file']
 
 logger = logging.getLogger(__name__)
 
@@ -100,11 +101,10 @@ def _get_header_dict(header):
 
 
 def _check_file(filepath: str, end_filter: str = None) -> None:
-    end_filter = end_filter or ''
     if not os.path.isfile(filepath):
-        raise FileNotFoundError('File %s doesn\'t exist' % filepath)
-    if not filepath.endswith(end_filter):
-        raise ValueError('File %s is not an edf.gz file' % filepath)
+        raise FileNotFoundError(f'File {filepath} doesn\'t exist')
+    if end_filter and not filepath.endswith(end_filter):
+        raise ValueError(f'File {filepath} is not an {end_filter} file')
 
 
 def _get_numpy_type(edf_type):
@@ -112,31 +112,31 @@ def _get_numpy_type(edf_type):
     Returns NumPy type based on edf type
     """
     edf_type = edf_type.upper()
-    if edf_type == "SIGNEDBYTE":
+    if edf_type == 'SIGNEDBYTE':
         return np.int8  # "b"
-    elif edf_type == "UNSIGNEDBYTE":
+    elif edf_type == 'UNSIGNEDBYTE':
         return np.uint8  # "B"
-    elif edf_type == "SIGNEDSHORT":
+    elif edf_type == 'SIGNEDSHORT':
         return np.int16  # "h"
-    elif edf_type == "UNSIGNEDSHORT":
+    elif edf_type == 'UNSIGNEDSHORT':
         return np.uint16  # "H"
-    elif edf_type == "SIGNEDINTEGER":
+    elif edf_type == 'SIGNEDINTEGER':
         return np.int32  # "i"
-    elif edf_type == "UNSIGNEDINTEGER":
+    elif edf_type == 'UNSIGNEDINTEGER':
         return np.uint32  # "I"
-    elif edf_type == "SIGNEDLONG":
+    elif edf_type == 'SIGNEDLONG':
         return np.int32  # "i"
-    elif edf_type == "UNSIGNEDLONG":
+    elif edf_type == 'UNSIGNEDLONG':
         return np.uint32  # "I"
-    elif edf_type == "SIGNED64":
+    elif edf_type == 'SIGNED64':
         return np.int64  # "l"
-    elif edf_type == "UNSIGNED64":
+    elif edf_type == 'UNSIGNED64':
         return np.uint64  # "L"
-    elif edf_type == "FLOATVALUE":
+    elif edf_type == 'FLOATVALUE':
         return np.float32  # "f"
-    elif edf_type == "FLOAT":
+    elif edf_type == 'FLOAT':
         return np.float32  # "f"
-    elif edf_type == "DOUBLEVALUE":
+    elif edf_type == 'DOUBLEVALUE':
         return np.float64  # "d"
     else:
-        raise TypeError("unknown EdfType %s" % edf_type)
+        raise TypeError(f'unknown EdfType {edf_type}')
