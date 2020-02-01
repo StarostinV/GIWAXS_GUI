@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Iterable, List
 
 import numpy as np
-from matplotlib import pyplot as plt
+import cv2
 
 from .read_edf import read_edf_from_file
 
@@ -39,7 +39,7 @@ def get_image_from_path(filepath, normalize: bool = True) -> np.array:
     if filepath.endswith('.edf'):
         image = read_edf_from_file(filepath)[0]
     else:
-        image = np.flip(plt.imread(filepath), 0)
+        image = np.flip(cv2.imread(filepath, cv2.IMREAD_GRAYSCALE), 0)
     if normalize:
         image = normalize_image(image)
     return image
@@ -54,36 +54,11 @@ def get_raw_image(num: int = 0, *, random: bool = False):
         raise FileNotFoundError()
 
 
-def plot(image, *,
-         title: str = None,
-         plot_hist: bool = False,
-         filepath: str = None):
-    plt.figure()
-    plt.imshow(image, origin=True, cmap='jet')
-    if title:
-        plt.title(title)
-    plt.colorbar()
-    if filepath:
-        plt.savefig(filepath)
-    else:
-        plt.show()
-    if plot_hist:
-        plt.hist(image.flatten(), bins=100)
-
-        if filepath:
-            plt.savefig(f'hist_{filepath}')
-        else:
-            plt.show()
-
-
-def normalize_image(image: np.array):
+def normalize_image(image: np.ndarray):
+    # TODO: move to a standalone optional functionality with parameter sigma_factor
+    # ( hidden vertical slider on the widget on the right ? )
+    m, s = image.mean(), image.std() * 2
+    image = np.clip(image, m - s, m + s)
     image = (image - image.min()) / image.max()
-    # image_ = image_ ** 0.2
     return image
 
-
-if __name__ == '__main__':
-    image_ = get_image(random=True)
-    plot(image_, plot_hist=True)
-    sub_image = np.percentile(image_, 0.99)
-    print(sub_image)
