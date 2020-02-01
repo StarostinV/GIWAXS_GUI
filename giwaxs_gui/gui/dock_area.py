@@ -6,7 +6,7 @@ from pyqtgraph.dockarea import DockArea, Dock
 from .signal_connection import AppDataHolder, AppNode, SignalContainer
 from .control_widget import ControlWidget
 from .plot_widgets import Basic2DImageWidget
-from .interpolation_widget import InterpolateImageWidget
+from .interpolation.interpolation_widget import InterpolateImageWidget
 from .radial_profile_widget import RadialProfileWidget
 from .angular_profile_widget import AngularProfileWidget
 from .file_manager import FileWidget
