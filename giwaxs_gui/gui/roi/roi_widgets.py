@@ -149,6 +149,9 @@ class Roi1DAngular(Roi1D):
 class Roi2DRect(AbstractROI, RectROI):
     _USE_BRIGHT_COLOR = True
     _g = 180 / np.pi
+    # TODO: fix bug with active status
+    # TODO: overwrite Handle class to manage moving and be able to fix/unfix it
+    # TODO: fix moving in each direction separately
 
     def __init__(self, value: RoiParameters, rr, r_size, phi, phi_size):
         AbstractROI.__init__(self, value)
