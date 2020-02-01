@@ -8,8 +8,6 @@ from scipy.optimize import curve_fit
 
 from PyQt5.QtGui import QColor
 
-from scipy.ndimage import gaussian_filter1d  # temporary!
-
 from .basic_widgets import (BasicInputParametersWidget, ConfirmButton,
                             RoundedPushButton, Smooth1DPlot)
 from .signal_connection import SignalConnector, SignalContainer
@@ -30,9 +28,7 @@ class RadialProfileWidget(BasicROIContainer, Smooth1DPlot):
                  parent=None):
         BasicROIContainer.__init__(self, signal_connector)
         Smooth1DPlot.__init__(self, parent)
-        self.radial_profile = None
         self._peaks_setup = None
-        self.x_axis = None
         self._fit_parameters_dict = read_config(PeaksSetupWindow.NAME)
         self.update_image()
 
@@ -100,7 +96,7 @@ class RadialProfileWidget(BasicROIContainer, Smooth1DPlot):
         # TODO show message if number of peaks exceeds max number and suggest to increase sigma.
         if self._fit_parameters_dict.get('sigma_find', None) is not None:
             self.set_sigma(self._fit_parameters_dict['sigma_find'])
-        peaks = find_peaks(self.radial_profile)[0]
+        peaks = find_peaks(self.smoothed_y)[0]
         sc = SignalContainer(app_node=self)
         for i, peak in enumerate(peaks):
             segment = RoiParameters(peak * self.image.scale, self._DefaultRoiWidth * self.image.scale,
@@ -112,7 +108,7 @@ class RadialProfileWidget(BasicROIContainer, Smooth1DPlot):
         if self._fit_parameters_dict.get('sigma_fit', None) is not None:
             self.set_sigma(self._fit_parameters_dict['sigma_fit'])
         sc = SignalContainer(app_node=self)
-        fit_params = FitParameters(self.x_axis, self.radial_profile, self.image.scale)
+        fit_params = FitParameters(self.x, self.smoothed_y, self.image.scale)
         for value in self.get_selected():
             fit_params.add_value(value)
             value = list(fit_params.fit())[0]
@@ -126,36 +122,12 @@ class RadialProfileWidget(BasicROIContainer, Smooth1DPlot):
         if self._fit_parameters_dict.get('sigma_fit', None) is not None:
             self.set_sigma(self._fit_parameters_dict['sigma_fit'])
         sc = SignalContainer(app_node=self)
-        fit_params = FitParameters(self.x_axis, self.radial_profile, self.image.scale)
+        fit_params = FitParameters(self.x, self.smoothed_y, self.image.scale)
         fit_params.add_values(self.get_selected())
         for value in fit_params.fit():
             sc.segment_moved(value, signal_type='broadcast')
             sc.segment_fixed(value)
         sc.send()
-
-    def _fit_many(self, value_list):
-        pass
-
-    def _fit_roi(self, value: RoiParameters):
-        scale = self.image.scale
-        mu_min, mu_max = value.radius - value.width / 2, value.radius + value.width / 2
-        x1, x2 = (int(mu_min / scale),
-                  int(mu_max / scale))
-        data = self.radial_profile[x1:x2]
-        x = self.x_axis[x1:x2]
-        A = data.max()
-        sigma = value.width / 2
-        mu = value.radius
-        B = 0
-        try:
-            res = curve_fit(gauss, x, data, (A, mu, sigma, B),
-                            bounds=((0, mu_min, 0, 0),
-                                    (A, mu_max, sigma * 2, A)))
-            A, mu, sigma, B = res[0]
-            return value._replace(radius=mu, width=sigma * 2,
-                                  fit_r_parameters=(A, mu, sigma, B))
-        except RuntimeError:
-            return
 
     def _get_default_roi_parameters(self):
         scale = self.image.scale
@@ -192,23 +164,22 @@ class RadialProfileWidget(BasicROIContainer, Smooth1DPlot):
         return Roi1D(params)
 
     def _add_item(self, roi):
-        self.centralWidget().plot_item.addItem(roi)
+        self.image_view.plot_item.addItem(roi)
 
     def _remove_item(self, roi):
-        self.centralWidget().plot_item.removeItem(roi)
+        self.image_view.plot_item.removeItem(roi)
 
     def update_image(self):
         if self.image.rr is None or self.image.image is None:
             return
-        self.radial_profile = get_radial_profile(
-            self.image.image, self.image.rr, self.sigma)
+        self.y = get_radial_profile(self.image.image, self.image.rr)
         self.update_x_axis()
 
-    def update_x_axis(self, update_image: bool = True):
+    def update_x_axis(self, plot: bool = True):
         rr = self.image.rr
-        self.x_axis = np.linspace(rr.min(), rr.max(), self.radial_profile.size) * self.image.scale
-        if update_image:
-            self.centralWidget().set_data(self.x_axis, self.radial_profile)
+        self._x = np.linspace(rr.min(), rr.max(), self.smoothed_y.size) * self.image.scale
+        if plot:
+            self.plot()
 
 
 class PeaksSetupWindow(BasicInputParametersWidget):
@@ -345,13 +316,11 @@ def multi_gauss(x, *p):
     return res
 
 
-def get_radial_profile(img, r, sigma: float = 0):
+def get_radial_profile(img, r):
     assert img.shape == r.shape
     r = r.astype(np.int)
 
     tbin = np.bincount(r.ravel(), img.ravel())
     nr = np.bincount(r.ravel())
     radial_profile = np.nan_to_num(tbin / nr)
-    if sigma:
-        radial_profile = gaussian_filter1d(radial_profile, sigma)
     return radial_profile

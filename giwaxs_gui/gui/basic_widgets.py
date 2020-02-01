@@ -4,6 +4,7 @@ from abc import abstractmethod
 from typing import NamedTuple
 
 import numpy as np
+from scipy.ndimage import gaussian_filter1d
 
 from PyQt5.QtWidgets import (QWidget, QMainWindow, QFrame,
                              QSlider, QLineEdit, QHBoxLayout,
@@ -46,14 +47,49 @@ class Custom1DPlot(GraphicsLayoutWidget):
 
 
 class Smooth1DPlot(QMainWindow):
-    # TODO: smoothing should be independent from update_image and fast.
     _MaximumSliderWidth = 200
     _MaximumSliderHeight = 30
 
+    @property
+    def y(self):
+        return self._y
+
+    @y.setter
+    def y(self, value):
+        self._y = value
+        self.update_smoothed_y()
+
+    @property
+    def smoothed_y(self):
+        return self._smoothed_y
+
+    @property
+    def x(self):
+        if self._x is None and self._y is not None:
+            return np.arange(self._y.size)
+        else:
+            return self._x
+
+    @x.setter
+    def x(self, value):
+        self._x = value
+
+    def update_smoothed_y(self):
+        y = self.y
+        if isinstance(y, np.ndarray):
+            if self.sigma:
+                self._smoothed_y = gaussian_filter1d(y, self.sigma)
+            else:
+                self._smoothed_y = y
+
     def __init__(self, parent=None):
         QMainWindow.__init__(self, parent=parent)
-        self.setCentralWidget(Custom1DPlot())
+        self.image_view = Custom1DPlot()
+        self.setCentralWidget(self.image_view)
         self.sigma = 0
+        self._y = None
+        self._smoothed_y = None
+        self._x = None
         self.__init_toolbars__()
 
     def __init_toolbars__(self):
@@ -78,17 +114,17 @@ class Smooth1DPlot(QMainWindow):
         layout.addWidget(sigma_slider, alignment=Qt.AlignHCenter)
         toolbar.addWidget(frame)
 
-    @abstractmethod
-    def update_image(self):
-        pass
-
     def set_sigma(self, value: float):
         self.update_sigma(value)
         self.sigma_slider.set_value(value, change_bounds=True)
 
     def update_sigma(self, value: float):
         self.sigma = value
-        self.update_image()
+        self.update_smoothed_y()
+        self.plot()
+
+    def plot(self):
+        self.image_view.set_data(self.x, self.smoothed_y)
 
 
 class CustomImageViewer(GraphicsLayoutWidget):
@@ -445,7 +481,7 @@ class AnimatedSlider(RoundedPushButton):
                  hide: bool = True,
                  context_menu_enabled: bool = True,
                  disable_changing_status: bool = False,
-                 min_max_bounds: tuple = (-1e10, 1e10)):
+                 min_max_bounds: tuple = (-10000, 10000)):
 
         super(AnimatedSlider, self).__init__(parent)
         self.context_menu_enabled = context_menu_enabled

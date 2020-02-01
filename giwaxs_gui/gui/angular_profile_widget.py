@@ -18,8 +18,6 @@ class AngularProfileWidget(BasicROIContainer, Smooth1DPlot):
     def __init__(self, signal_connector: SignalConnector, parent=None):
         BasicROIContainer.__init__(self, signal_connector)
         Smooth1DPlot.__init__(self, parent)
-        self.angular_profile = None
-        self.x = None
         self._update_suggested = False
         self.current_roi_key = None
         self.bins_number = 300
