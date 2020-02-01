@@ -8,6 +8,7 @@ from scipy.optimize import curve_fit
 
 from PyQt5.QtGui import QColor
 
+from scipy.ndimage import gaussian_filter1d  # temporary!
 
 from .basic_widgets import (BasicInputParametersWidget, ConfirmButton,
                             RoundedPushButton, Smooth1DPlot)
@@ -16,7 +17,6 @@ from .roi.roi_widgets import Roi1D
 from .roi.roi_containers import BasicROIContainer
 
 from ..config import read_config
-from ..interpolation import get_radial_profile
 from ..utils import Icon, RoiParameters, show_error
 
 logger = logging.getLogger(__name__)
@@ -343,3 +343,15 @@ def multi_gauss(x, *p):
     for i in range(len(p) // 4):
         res += gauss(x, *p[4 * i:(4 * i + 4)])
     return res
+
+
+def get_radial_profile(img, r, sigma: float = 0):
+    assert img.shape == r.shape
+    r = r.astype(np.int)
+
+    tbin = np.bincount(r.ravel(), img.ravel())
+    nr = np.bincount(r.ravel())
+    radial_profile = np.nan_to_num(tbin / nr)
+    if sigma:
+        radial_profile = gaussian_filter1d(radial_profile, sigma)
+    return radial_profile
