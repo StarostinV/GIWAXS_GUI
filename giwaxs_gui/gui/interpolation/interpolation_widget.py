@@ -57,12 +57,6 @@ class InterpolateImageWidget(AbstractROIContainer, QMainWindow):
         return Roi2DRect(params, rr, r_size, phi, phi_size)
 
     def __init_toolbar__(self):
-        toolbar = self.addToolBar('Main')
-        toolbar.setStyleSheet('background-color: black;')
-
-        update_action = QAction(Icon('update'), 'Update', self)
-        update_action.triggered.connect(self.update_image)
-        toolbar.addAction(update_action)
 
         setup_toolbar = self.addToolBar('Setup')
         setup_toolbar.setStyleSheet('background-color: black;')

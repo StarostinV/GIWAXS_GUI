@@ -216,3 +216,16 @@ class Image(object):
 
     def interpolate(self):
         return self.interpolation.interpolate(self.image)
+
+    def get_angular_profile(self, r1: float, r2: float):
+        # TODO: refactor! should be handled by Interpolation class
+        image, rr, r_size, p = (self.image, self.rr, self.interpolation.r_size,
+                                self.interpolation.interpolation_geometry.p)
+        if any(x is None for x in (image, rr, r_size, p)):
+            return
+        r_min = rr.min()
+        r_ratio = (rr.max() - rr.min()) / r_size
+        r1 = int((r1 / self.scale - r_min) / r_ratio)
+        r2 = int((r2 / self.scale - r_min) / r_ratio)
+        x = p * 180 / np.pi
+        return x, self.interpolation.get_angular_profile(r1, r2)
