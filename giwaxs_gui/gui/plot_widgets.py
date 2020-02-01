@@ -152,6 +152,7 @@ class GiwaxsImageViewer(AbstractROIContainer, CustomImageViewer):
 
     def on_closing_beam_center_widget(self):
         self._geometry_params_widget = None
+        SignalContainer(app_node=self).geometry_changed_finish(0).send()
 
     def emit_scale_changed(self, value):
         self.image.set_scale(value)
