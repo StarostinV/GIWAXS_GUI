@@ -28,6 +28,7 @@ class SignalKeys(object):
     # TODO: change to ENUM
     _image_changed_key = 'image_changed'
     _geometry_changed_key = 'geometry_changed'
+    _geometry_changed_finish_key = 'geometry_changed_finish'
     _transformation_key = 'transformation'
 
     _status_changed_key = 'status_changed'
@@ -168,6 +169,10 @@ class SignalContainer(BasicSignalContainer, SignalKeys):
     @_overload_signal_container_functions
     def geometry_changed(self, data=None, *args, **kwargs):
         return self._geometry_changed_key, EmptySignalData
+
+    @_overload_signal_container_functions
+    def geometry_changed_finish(self, data=None, *args, **kwargs):
+        return self._geometry_changed_finish_key, EmptySignalData
 
     @_overload_signal_container_functions
     def status_changed(self, data=None, *args, **kwargs):
