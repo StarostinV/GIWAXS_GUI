@@ -20,8 +20,7 @@ setup(
     python_requires='>=3.6.*',
     install_requires=[
         'numpy>=1.18.1',
-        'matplotlib>=3.1.2',
-        'pillow',
+        'opencv-python>=4.*.*.*',
         'scipy>=1.4.1',
         'h5py>=2.10.0',
         'PyQt5',
