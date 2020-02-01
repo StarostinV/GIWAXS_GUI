@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 from abc import abstractmethod
-from collections import namedtuple
+from typing import NamedTuple
 
 import numpy as np
 
@@ -648,8 +648,12 @@ class InfoButton(RoundedPushButton):
 
 
 class AbstractInputParametersWidget(QWidget):
-    InputParameters = namedtuple('InputParameters', 'name label type info none')
-    InputParameters.__new__.__defaults__ = (False, None,)
+    class InputParameters(NamedTuple):
+        name: str
+        label: str
+        type: type
+        info: str = None
+        none: str = False
 
     @property
     @abstractmethod
