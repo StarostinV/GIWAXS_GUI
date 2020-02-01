@@ -73,7 +73,7 @@ class AppDockArea(DockArea, AppNode):
         dock = Dock('Angular Profile')
         dock.addWidget(self.angular_profile)
         self.addDock(dock, position='bottom')
-        self.angular_profile.update_image()
+        self.angular_profile.update_profile()
         self.angular_profile_dock = dock
 
     def __init_control_widget__(self):
