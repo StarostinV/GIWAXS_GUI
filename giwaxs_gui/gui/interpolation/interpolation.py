@@ -101,6 +101,19 @@ class Interpolation(object):
             logger.exception(err)
             return
 
+    def get_angular_profile(self, r1: int, r2: int):
+        if self.image is None:
+            return
+        max_ind = self.r_size - 1
+        r1, r2 = max(min((r1, r2)), 0), min(max((r1, r2)), max_ind)
+        if r1 > max_ind or r2 < 0:
+            return
+        try:
+            return self.image[:, r1:r2].sum(axis=1)
+        except Exception as err:
+            logger.exception(err)
+            return
+
 
 class InterpolationGeometry(NamedTuple):
     """
