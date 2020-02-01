@@ -15,6 +15,16 @@ class Geometry(NamedTuple):
     phi: np.ndarray = None
     beam_center: tuple = None
 
+    @classmethod
+    def get(cls, shape: tuple, center: tuple):
+        xx, yy = np.meshgrid(
+            np.arange(shape[1]) - center[1],
+            np.arange(shape[0]) - center[0]
+        )
+        rr = np.sqrt(xx ** 2 + yy ** 2)
+        phi = np.arctan2(yy, xx)
+        return cls(xx=xx, yy=yy, rr=rr, phi=phi, beam_center=center)
+
 
 class ImageScale(NamedTuple):
     scale: float = 1.
@@ -184,13 +194,8 @@ class Image(object):
     def update_geometry(self):
         if self._image is None or self._beam_center is None:
             return
-        xx, yy = np.meshgrid(
-            np.arange(self._image.shape[1]) - self._beam_center[1],
-            np.arange(self._image.shape[0]) - self._beam_center[0]
-        )
-        rr = np.sqrt(xx ** 2 + yy ** 2)
-        phi = np.arctan2(yy, xx)
-        self._geometry = Geometry(xx, yy, rr, phi, self._beam_center)
+        self._geometry = Geometry.get(self.shape, self._beam_center)
+        phi = self._geometry.phi
         self._ring_angles = RingAngles(
             angle=(phi.max() + phi.min()) / 2 * 180 / np.pi,
             angle_std=(phi.max() - phi.min()) * 180 / np.pi
