@@ -4,6 +4,7 @@ import logging
 import numpy as np
 
 from .exceptions import UnknownTransformation
+from .interpolation.interpolation import Interpolation
 
 logger = logging.getLogger(__name__)
 
@@ -144,6 +145,10 @@ class Image(object):
     def ring_angle_str(self):
         return self._ring_angles.angle_std
 
+    @property
+    def interpolation(self):
+        return self._interpolation
+
     def __init__(self):
         self._source_image = None
         self._image = None
@@ -155,6 +160,7 @@ class Image(object):
         self._geometry = Geometry()
         self._scale = ImageScale()
         self._ring_angles = RingAngles()
+        self._interpolation = Interpolation()
 
     def set_image_limits(self, limits: tuple = None):
         self._intensity_limits = limits
@@ -200,6 +206,13 @@ class Image(object):
             angle=(phi.max() + phi.min()) / 2 * 180 / np.pi,
             angle_std=(phi.max() - phi.min()) * 180 / np.pi
         )
+        self.interpolation.set_geometry(self.geometry)
 
     def set_scale(self, scale: float, unit: str = ''):
         self._scale = ImageScale(scale, unit, self.scale)
+
+    def set_interpolation_parameters(self, parameters: dict):
+        self.interpolation.set_parameters(parameters)
+
+    def interpolate(self):
+        return self.interpolation.interpolate(self.image)
