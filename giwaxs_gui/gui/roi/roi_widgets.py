@@ -163,6 +163,8 @@ class Roi2DRect(AbstractROI, RectROI):
         self.sigRegionChanged.connect(self.handle_is_moving)
 
     def __init_ratios__(self, rr, r_size, phi, phi_size):
+        # TODO: refactor!! rois should not handle these problems
+        # TODO: fix bug: not sensitive to scale changing
         _g = self._g
         self.r_ratio = (rr.max() - rr.min()) / r_size
         self.phi_ratio = (phi.max() - phi.min()) / phi_size * _g
