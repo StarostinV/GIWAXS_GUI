@@ -4,12 +4,21 @@
 giwaxs-gui contains all the basic functionality for 
 the analysis of 2D diffraction images with circular symmetry. 
 In particular, it focuses on grazing-incidence wide-angle scattering
-data and its specific needs.
+data analysis and its specific needs.
+
+### Dependencies
+
+* PyQt5
+* numpy 
+* scipy
+* opencv-python
+* pyqtgraph
+* h5py
 
 ## Install
 ### Pip install 
 
-To install current release via pip, you should have python installed 
+To install the current release via pip, you should have python installed 
 on your computer. The minimum required version is 3.6.0. Install package via pip:
 
 ```sh
@@ -29,13 +38,16 @@ python
 
 ![overview](giwaxs_gui/static/readme/gui-overview-2.png)
 
-The program allows to find and fit circular segments of higher intensities and
-discover their radial and angular positions for further analysis. 
+The program provides different tools for visualizing, detecting and fitting 
+Bragg reflections with circular or rotational symmetry on diffraction images. 
+The corresponding angular and radial positions and sizes of 
+detected diffraction reflections can be saved
+for further analysis.
 
 The graphical interface consists of several functional widgets that can be dragged 
 over the window,
 resized and hidden to optimize the analysis. One can show/hide widgets by clicking on corresponding 
-icons on the top left widget toolbar. Main widgets are:
+icons on the top left toolbar. Main widgets are:
 
 * File manager (left)
 * Image viewer (top center)
@@ -63,9 +75,15 @@ Available files extensions to read from:
 * .edf
 * .h5
 
-Both H5 files parsing and folder parsing are designed in a way that it
-reads only the content of groups/folders which are selected. It may help reading huge 
-files if they are well structured.
+Please note that the currently used .edf reader is written for 
+specific extension of .edf files used on some x-ray facilities. h5 file
+reading is powered by h5py library, and .tiff files are read via opencv-python
+package. Hence, the current list can be easily extended by the number of 
+image extensions supported by opencv library.
+
+Both H5 files parsing and folder parsing are designed in a way that they
+read only the content of groups/folders which are selected. It may accelerate reading huge 
+h5 files if they are well structured.
 
 ### Image viewer
 
@@ -75,7 +93,8 @@ Image viewer provides options for setting geometry (beam center,
 axes scale, image transformations - geometry toolbar on top left) 
 and adopting the view by changing the colormap
 and its bounds (histogram widget on the right). An added segment 
-immediately appears on the image viewer.
+immediately appears on the image viewer. Currently this widget does not 
+support moving segments by dragging, but provides its visualization.
 
 ### Radial profile
 
