@@ -68,11 +68,14 @@ class InterpolateImageWidget(AbstractROIContainer, QMainWindow):
         p_image = self.image.interpolate()
         if p_image is not None:
             roi_values = [value.parameters for value in self.roi_dict.values()]
+            active_list = [value.active for value in self.roi_dict.values()]
             for p in roi_values:
                 self.delete_roi(p)
             self.set_data(p_image)
-            for p in roi_values:
+            for p, a in zip(roi_values, active_list):
                 self.add_roi(p)
+                if a:
+                    self.roi_dict[p.key].set_active()
 
     def set_data(self, image):
         self._image_viewer.set_data(image)
