@@ -35,9 +35,9 @@ class InterpolateImageWidget(AbstractROIContainer, QMainWindow):
 
     def process_signal(self, s: SignalContainer):
         super().process_signal(s)
-        for _ in s.image_changed():
+        if s.image_changed():
             self.update_image()
-        for _ in s.geometry_changed_finish():
+        if s.geometry_changed_finish():
             self.update_image()
 
     def _add_item(self, roi):

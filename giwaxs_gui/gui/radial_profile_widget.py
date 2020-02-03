@@ -81,13 +81,14 @@ class RadialProfileWidget(BasicROIContainer, PlotWithBaseLineCorrection):
 
     def process_signal(self, s: SignalContainer):
         update_image = False
-        for _ in s.image_changed():
+        if s.image_changed() or s.geometry_changed():
             update_image = True
-        for _ in s.geometry_changed():
-            update_image = True
+
         BasicROIContainer.process_signal(self, s)
         if update_image:
             self.update_image()
+        elif s.segment_fixed():
+            self.plot()
 
     def _on_scale_changed(self):
         self.update_x_axis()

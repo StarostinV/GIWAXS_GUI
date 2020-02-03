@@ -14,7 +14,7 @@ class AbstractROIContainer(AppNode):
         self.roi_dict = dict()
 
     def process_signal(self, s: SignalContainer):
-        for _ in s.scale_changed():
+        if s.scale_changed():
             self._on_scale_changed()
         for signal in s.segment_created():
             self.add_roi(signal())
