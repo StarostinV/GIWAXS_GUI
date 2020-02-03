@@ -52,6 +52,7 @@ class RoundedPushButton(QAbstractButton):
 
     def paintEvent(self, QPaintEvent):
         painter = self._get_painter()
+        # TODO: fix icon position and size bug when pressed
         if self._pressed:
             rect = QRect(0, 3, painter.device().width(),
                          int(painter.device().height() * 0.9))
