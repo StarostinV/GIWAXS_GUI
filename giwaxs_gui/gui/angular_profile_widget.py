@@ -17,9 +17,11 @@ class AngularProfileWidget(BasicROIContainer, PlotWithBaseLineCorrection):
         PlotWithBaseLineCorrection.__init__(self, parent)
         self._update_suggested = False
         self.current_roi_key = None
-        self.bins_number = 300
 
     def process_signal(self, sc: SignalContainer):
+        for signal in sc.segment_deleted():
+            if signal().key == self.current_roi_key:
+                self._remove_current_roi()
         for signal in sc.segment_moved():
             if signal().key == self.current_roi_key:
                 self.update_profile()
@@ -33,6 +35,8 @@ class AngularProfileWidget(BasicROIContainer, PlotWithBaseLineCorrection):
                 self.current_roi_key != selected_params[0].key
         ):
             self._change_current_roi(selected_params[0].key)
+        elif len(selected_params) != 1:
+            self._remove_current_roi()
 
     def _change_current_roi(self, k):
         self._remove_current_roi()
@@ -44,6 +48,7 @@ class AngularProfileWidget(BasicROIContainer, PlotWithBaseLineCorrection):
         if self.current_roi_key is not None:
             self.roi_dict[self.current_roi_key].hide()
             self.current_roi_key = None
+            self.clear_plot()
 
     def _get_roi(self, params: RoiParameters):
         roi = Roi1DAngular(params)
