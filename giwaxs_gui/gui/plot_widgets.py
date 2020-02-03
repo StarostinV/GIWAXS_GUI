@@ -22,7 +22,7 @@ class GiwaxsImageViewer(AbstractROIContainer, CustomImageViewer):
         return self.image.beam_center
 
     class BeamCenterRoi(CircleROI):
-        _ROI_SIZE = 200
+        _ROI_SIZE = 1
 
         def __init__(self, beam_center, parent):
             CircleROI.__init__(self, (beam_center[1], beam_center[0]),
