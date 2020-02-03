@@ -65,7 +65,6 @@ class RoundedPushButton(QAbstractButton):
             painter.drawPixmap(0, 0, pixmap)
 
     def mousePressEvent(self, QMouseEvent):
-        self._pressed = True
         super().mousePressEvent(QMouseEvent)
         if QMouseEvent.button() == Qt.LeftButton:
             self._pressed = True
