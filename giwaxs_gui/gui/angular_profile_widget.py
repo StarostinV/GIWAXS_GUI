@@ -5,16 +5,16 @@ from .signal_connection import SignalContainer, SignalConnector, StatusChangedCo
 from .roi.roi_widgets import Roi1DAngular
 from .roi.roi_containers import BasicROIContainer
 
-from .basic_widgets import Smooth1DPlot
+from .basic_widgets import PlotWithBaseLineCorrection
 from ..utils import RoiParameters
 
 logger = logging.getLogger(__name__)
 
 
-class AngularProfileWidget(BasicROIContainer, Smooth1DPlot):
+class AngularProfileWidget(BasicROIContainer, PlotWithBaseLineCorrection):
     def __init__(self, signal_connector: SignalConnector, parent=None):
         BasicROIContainer.__init__(self, signal_connector)
-        Smooth1DPlot.__init__(self, parent)
+        PlotWithBaseLineCorrection.__init__(self, parent)
         self._update_suggested = False
         self.current_roi_key = None
         self.bins_number = 300

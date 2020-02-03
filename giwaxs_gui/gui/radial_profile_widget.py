@@ -9,7 +9,7 @@ from scipy.optimize import curve_fit
 from PyQt5.QtGui import QColor
 
 from .basic_widgets import (BasicInputParametersWidget, ConfirmButton,
-                            RoundedPushButton, Smooth1DPlot)
+                            RoundedPushButton, PlotWithBaseLineCorrection)
 from .signal_connection import SignalConnector, SignalContainer
 from .roi.roi_widgets import Roi1D
 from .roi.roi_containers import BasicROIContainer
@@ -20,14 +20,14 @@ from ..utils import Icon, RoiParameters, show_error
 logger = logging.getLogger(__name__)
 
 
-class RadialProfileWidget(BasicROIContainer, Smooth1DPlot):
+class RadialProfileWidget(BasicROIContainer, PlotWithBaseLineCorrection):
     _DefaultRoiWidth = 50
     _DefaultNewRoiParameters = dict(radius=10, width=5)
 
     def __init__(self, signal_connector: SignalConnector,
                  parent=None):
         BasicROIContainer.__init__(self, signal_connector)
-        Smooth1DPlot.__init__(self, parent)
+        PlotWithBaseLineCorrection.__init__(self, parent)
         self._peaks_setup = None
         self._fit_parameters_dict = read_config(PeaksSetupWindow.NAME)
         self.update_image()
@@ -177,7 +177,7 @@ class RadialProfileWidget(BasicROIContainer, Smooth1DPlot):
 
     def update_x_axis(self, plot: bool = True):
         rr = self.image.rr
-        self._x = np.linspace(rr.min(), rr.max(), self.smoothed_y.size) * self.image.scale
+        self.x = np.linspace(rr.min(), rr.max(), self.smoothed_y.size) * self.image.scale
         if plot:
             self.plot()
 
