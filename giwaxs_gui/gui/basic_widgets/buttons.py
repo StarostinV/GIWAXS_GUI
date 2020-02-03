@@ -16,7 +16,7 @@ class RoundedPushButton(QAbstractButton):
                  parent=None, *,
                  text: str = '',
                  icon: QIcon = None,
-                 radius: float = 20,
+                 radius: int = 20,
                  background_color: QColor or str = 'white'):
         self._radius = radius
         self._text = text
@@ -54,7 +54,7 @@ class RoundedPushButton(QAbstractButton):
         painter = self._get_painter()
         if self._pressed:
             rect = QRect(0, 3, painter.device().width(),
-                         painter.device().height() * 0.9)
+                         int(painter.device().height() * 0.9))
         else:
             rect = QRect(0, 0, painter.device().width(),
                          painter.device().height())
