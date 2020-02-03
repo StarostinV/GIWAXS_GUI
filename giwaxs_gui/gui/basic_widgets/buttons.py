@@ -66,7 +66,9 @@ class RoundedPushButton(QAbstractButton):
     def mousePressEvent(self, QMouseEvent):
         self._pressed = True
         super().mousePressEvent(QMouseEvent)
-        self.shadow.setEnabled(False)
+        if QMouseEvent.button() == Qt.LeftButton:
+            self._pressed = True
+            self.shadow.setEnabled(False)
 
     def mouseReleaseEvent(self, QMouseEvent):
         self._pressed = False
