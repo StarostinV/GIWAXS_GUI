@@ -57,8 +57,9 @@ class AbstractROIContainer(AppNode):
                 self.roi_dict[k].set_active()
 
     def emit_create_segment(self, params: RoiParameters):
-        self.signal_connector.emit_upward(
-            SignalContainer().segment_created(params))
+        if self.image.image is not None:
+            self.signal_connector.emit_upward(
+                SignalContainer().segment_created(params))
 
     def emit_delete_segment(self, params: RoiParameters):
         self.signal_connector.emit_upward(
