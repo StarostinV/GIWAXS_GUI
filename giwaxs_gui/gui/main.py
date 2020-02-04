@@ -7,7 +7,6 @@ from ..utils import center_widget, Icon
 
 class GiwaxsProgram(QMainWindow):
     _MinimumSize = (500, 500)
-    _InitSize = (1000, 700)
 
     def __init__(self):
         super(GiwaxsProgram, self).__init__()
@@ -18,7 +17,7 @@ class GiwaxsProgram(QMainWindow):
         self.setCentralWidget(self.main_widget)
         self.setWindowTitle('GIWAXS analysis')
         self.setWindowIcon(Icon('window_icon'))
-        self.setGeometry(0, 0, *self._InitSize)
+        self.showFullScreen()
         self.setMinimumSize(*self._MinimumSize)
 
         center_widget(self)
