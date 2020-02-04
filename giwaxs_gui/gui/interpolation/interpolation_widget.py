@@ -17,11 +17,7 @@ from ...utils import RoiParameters, Icon
 logger = logging.getLogger(__name__)
 
 
-# TODO: fix bug with scaling
-
 # TODO: fix bug with negative angles
-
-# TODO: add axes
 
 
 class InterpolateImageWidget(AbstractROIContainer, QMainWindow):
