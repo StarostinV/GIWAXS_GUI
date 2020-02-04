@@ -223,3 +223,15 @@ class Image(object):
 
     def get_angular_profile(self, r1: float, r2: float):
         return self.interpolation.phi_axis, self.interpolation.get_angular_profile(r1, r2)
+
+
+def get_limits(image: np.ndarray, sigma_factor: float = 2):
+    m, s = image.mean(), image.std() * sigma_factor
+    return m - s, m + s
+
+
+def normalize_image(image: np.ndarray, sigma_factor: float = None):
+    if sigma_factor:
+        image = np.clip(image, *get_limits(image, sigma_factor))
+    image = (image - image.min()) / image.max()
+    return image
