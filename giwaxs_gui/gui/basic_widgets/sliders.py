@@ -115,6 +115,7 @@ class DoubleSlider(QSlider):
 
 
 class AnimatedSlider(RoundedPushButton):
+    # TODO: change decimals to scientific notation!
     valueChanged = pyqtSignal(float)
     statusChanged = pyqtSignal(str)
     _EditMaximumWidth = 80

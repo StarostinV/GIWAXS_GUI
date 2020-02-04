@@ -15,9 +15,6 @@ from ...utils import RoiParameters, Icon
 logger = logging.getLogger(__name__)
 
 
-# TODO: fix bug with negative angles
-
-
 class InterpolateImageWidget(AbstractROIContainer, QMainWindow):
     def __init__(self, signal_connector: SignalConnector,
                  parent=None):
