@@ -152,23 +152,13 @@ class Roi2DRect(AbstractROI, RectROI):
     # TODO: overwrite Handle class to manage moving and be able to fix/unfix it
     # TODO: fix moving in each direction separately
 
-    def __init__(self, value: RoiParameters, rr, r_size, phi, phi_size):
+    def __init__(self, value: RoiParameters):
         AbstractROI.__init__(self, value)
         RectROI.__init__(self, pos=(0, 0), size=(1, 1))
-        self.__init_ratios__(rr, r_size, phi, phi_size)
 
         self.init_roi()
         self.handle = self.handles[0]['item']
         self.sigRegionChanged.connect(self.handle_is_moving)
-
-    def __init_ratios__(self, rr, r_size, phi, phi_size):
-        # TODO: refactor!! rois should not handle these problems
-        # TODO: fix bug: not sensitive to scale changing
-        _g = self._g
-        self.r_ratio = (rr.max() - rr.min()) / r_size
-        self.phi_ratio = (phi.max() - phi.min()) / phi_size * _g
-        self.r_min = rr.min()
-        self.phi_min = phi.min() * _g
 
     def handle_is_moving(self):
         if self.handle.isMoving:
@@ -179,10 +169,6 @@ class Roi2DRect(AbstractROI, RectROI):
         size, pos = self.size(), self.pos()
         w, a_w = size
         r, a = pos[0] + w / 2, pos[1] + a_w / 2
-        r *= self.r_ratio + self.r_min
-        w *= self.r_ratio + self.r_min
-        a *= self.phi_ratio + self.phi_min
-        a_w *= self.phi_ratio + self.phi_min
         self.parameters = self.parameters._replace(
             radius=r, width=w, angle=a, angle_std=abs(a_w))
         return self.parameters
@@ -191,9 +177,8 @@ class Roi2DRect(AbstractROI, RectROI):
     def value(self, value: RoiParameters):
         if value != self.parameters:
             self.parameters = value
-            r, w = (value.radius - self.r_min) / self.r_ratio, (value.width - self.r_min) / self.r_ratio
-            a = (value.angle - self.phi_min) / self.phi_ratio
-            a_w = abs((value.angle_std - self.phi_min) / self.phi_ratio)
+            r, w = value.radius, abs(value.width)
+            a, a_w = value.angle, abs(value.angle_std)
 
             pos = [r - w / 2, a - a_w / 2]
             size = [w, a_w]

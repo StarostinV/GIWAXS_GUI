@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import logging
 
-from PyQt5.QtWidgets import QMainWindow, QAction
+import numpy as np
+
+from PyQt5.QtWidgets import QMainWindow
 
 from .parameters_widget import InterpolateSetupWindow
 
@@ -40,6 +42,9 @@ class InterpolateImageWidget(AbstractROIContainer, QMainWindow):
         if s.geometry_changed_finish():
             self.update_image()
 
+    def _on_scale_changed(self):
+        self.set_axes()
+
     def _add_item(self, roi):
         if isinstance(roi, Roi2DRect):
             self._image_viewer.image_plot.addItem(roi)
@@ -49,12 +54,7 @@ class InterpolateImageWidget(AbstractROIContainer, QMainWindow):
             self._image_viewer.image_plot.removeItem(roi)
 
     def _get_roi(self, params: RoiParameters):
-        r_size, phi_size = (self.image.interpolation.r_size,
-                            self.image.interpolation.phi_size)
-        image, rr, phi = self.image.image, self.image.rr, self.image.phi
-        if any(x is None for x in (r_size, phi_size, image, rr, phi)):
-            return EmptyROI(params)
-        return Roi2DRect(params, rr, r_size, phi, phi_size)
+        return Roi2DRect(params)
 
     def __init_toolbar__(self):
 
@@ -72,6 +72,7 @@ class InterpolateImageWidget(AbstractROIContainer, QMainWindow):
             for p in roi_values:
                 self.delete_roi(p)
             self.set_data(p_image)
+            self.set_axes()
             for p, a in zip(roi_values, active_list):
                 self.add_roi(p)
                 if a:
@@ -79,6 +80,18 @@ class InterpolateImageWidget(AbstractROIContainer, QMainWindow):
 
     def set_data(self, image):
         self._image_viewer.set_data(image)
+
+    def set_axes(self):
+        # TODO: fix bug when r_size and phi_size are different.
+        r, p = self.image.interpolation.r_axis, self.image.interpolation.phi_axis
+        r_min, r_max = r.min(), r.max()
+        phi_min, phi_max = p.min(), p.max()
+
+        aspect_ratio = (phi_max - phi_min) * p.size / (r_max - r_min) / r.size
+
+        self._image_viewer.set_x_axis(r_min, r_max)
+        self._image_viewer.set_y_axis(phi_min, phi_max)
+        self._image_viewer.view_box.setAspectLocked(True, aspect_ratio)
 
     def open_setup_window(self):
         self._setup_window = InterpolateSetupWindow()
