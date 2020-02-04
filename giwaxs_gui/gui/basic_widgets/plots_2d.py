@@ -10,6 +10,10 @@ logger = logging.getLogger(__name__)
 
 
 class CustomImageViewer(GraphicsLayoutWidget):
+    @property
+    def view_box(self):
+        return self.image_plot.vb
+
     def __init__(self, parent=None, **kwargs):
         setConfigOptions(imageAxisOrder='row-major')
         super(CustomImageViewer, self).__init__(parent)
