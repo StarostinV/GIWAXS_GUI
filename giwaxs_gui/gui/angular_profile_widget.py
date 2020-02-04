@@ -49,6 +49,7 @@ class AngularProfileWidget(BasicROIContainer, PlotWithBaseLineCorrection):
             self.roi_dict[self.current_roi_key].hide()
             self.current_roi_key = None
             self.clear_plot()
+            self.y = None
 
     def _get_roi(self, params: RoiParameters):
         roi = Roi1DAngular(params)
