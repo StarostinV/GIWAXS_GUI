@@ -20,6 +20,7 @@ class Interpolation(object):
     def __init__(self):
         self._interpolation_geometry = None
         self._image = None
+        self._scale = 1.
         params = get_interpolation_parameters()
         self._r_size = params.get('r_size', None)
         self._phi_size = params.get('phi_size', None)
@@ -53,16 +54,23 @@ class Interpolation(object):
     @property
     def r_axis(self) -> np.ndarray or None:
         try:
-            return self._interpolation_geometry.r
+            return self._interpolation_geometry.r * self._scale
         except AttributeError:  # should be faster than checking if not None
             return
 
     @property
     def phi_axis(self) -> np.ndarray or None:
         try:
-            return self._interpolation_geometry.p
+            return self._interpolation_geometry.p * 180 / np.pi
         except AttributeError:
             return
+
+    @property
+    def scale(self):
+        return self._scale
+
+    def set_scale(self, scale: float):
+        self._scale = scale
 
     def set_algorithm(self, mode: 'Mode' or str):
         if isinstance(mode, str):
@@ -101,12 +109,17 @@ class Interpolation(object):
             logger.exception(err)
             return
 
-    def get_angular_profile(self, r1: int, r2: int):
+    def get_angular_profile(self, r1: float, r2: float):
         if self.image is None:
             return
-        max_ind = self.r_size - 1
-        r1, r2 = max(min((r1, r2)), 0), min(max((r1, r2)), max_ind)
-        if r1 > max_ind or r2 < 0:
+        r_min, r_max, scale = self.r_axis.min(), self.r_axis.max(), self.scale
+        r_ratio = (r_max - r_min) / self.r_size / scale
+
+        r1 = int((r1 - r_min) / r_ratio)
+        r2 = int((r2 - r_min) / r_ratio)
+
+        r1, r2 = max(min((r1, r2)), 0), min(max((r1, r2)), self.r_size)
+        if r1 > self.r_size or r2 < 0:
             return
         try:
             return self.image[:, r1:r2].sum(axis=1)

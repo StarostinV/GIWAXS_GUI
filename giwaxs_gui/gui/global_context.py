@@ -9,6 +9,9 @@ from .interpolation.interpolation import Interpolation
 logger = logging.getLogger(__name__)
 
 
+# TODO Refactor, introduce phi_degree_axis and r_scaled_axis for common use.
+
+
 class Geometry(NamedTuple):
     xx: np.ndarray = None
     yy: np.ndarray = None
@@ -210,6 +213,7 @@ class Image(object):
 
     def set_scale(self, scale: float, unit: str = ''):
         self._scale = ImageScale(scale, unit, self.scale)
+        self._interpolation.set_scale(scale)
 
     def set_interpolation_parameters(self, parameters: dict):
         self.interpolation.set_parameters(parameters)
@@ -218,14 +222,4 @@ class Image(object):
         return self.interpolation.interpolate(self.image)
 
     def get_angular_profile(self, r1: float, r2: float):
-        # TODO: refactor! should be handled by Interpolation class
-        image, rr, r_size, p = (self.image, self.rr, self.interpolation.r_size,
-                                self.interpolation.interpolation_geometry.p)
-        if any(x is None for x in (image, rr, r_size, p)):
-            return
-        r_min = rr.min()
-        r_ratio = (rr.max() - rr.min()) / r_size
-        r1 = int((r1 / self.scale - r_min) / r_ratio)
-        r2 = int((r2 / self.scale - r_min) / r_ratio)
-        x = p * 180 / np.pi
-        return x, self.interpolation.get_angular_profile(r1, r2)
+        return self.interpolation.phi_axis, self.interpolation.get_angular_profile(r1, r2)
