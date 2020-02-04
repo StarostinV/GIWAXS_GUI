@@ -181,7 +181,8 @@ class PlotWithBaseLineCorrection(Smooth1DPlot):
             self._smoothed_y = self._smoothed_y - self.baseline_curve
 
     def open_baseline_setup(self):
-        self._baseline.open_setup()
+        if self.y is not None:
+            self._baseline.open_setup()
 
 
 class BaseLine(object):
