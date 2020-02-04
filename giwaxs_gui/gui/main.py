@@ -1,8 +1,9 @@
-from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtWidgets import QMainWindow, QWidget, QSizePolicy
+from PyQt5.QtCore import Qt
 
 from .dock_area import AppDockArea
 from .basic_widgets import ToolBar
-from ..utils import center_widget, Icon
+from ..utils import Icon
 
 
 class GiwaxsProgram(QMainWindow):
@@ -17,11 +18,11 @@ class GiwaxsProgram(QMainWindow):
         self.setCentralWidget(self.main_widget)
         self.setWindowTitle('GIWAXS analysis')
         self.setWindowIcon(Icon('window_icon'))
-        self.showFullScreen()
         self.setMinimumSize(*self._MinimumSize)
-
-        center_widget(self)
+        self.setWindowState(Qt.WindowMaximized)
         self.show()
+
+        # center_widget(self)
 
     def __init_toolbar__(self):
         # self.toolbar = self.addToolBar('File manager')
@@ -48,4 +49,21 @@ class GiwaxsProgram(QMainWindow):
         interpolation = docks_toolbar.addAction(Icon('interpolate'), 'Polar interpolation')
         interpolation.triggered.connect(lambda: self.main_widget.show_hide_docks('interpolation'))
 
+        self.gen_toolbar = ToolBar('General')
+        self.addToolBar(self.gen_toolbar)
+        spacer_widget = QWidget()
+        spacer_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        spacer_widget.setVisible(True)
+        self.gen_toolbar.addWidget(spacer_widget)
+
+        self.fullscreen_action = self.gen_toolbar.addAction(Icon('tofullscreen'), 'Full screen')
+        self.fullscreen_action.triggered.connect(self._on_fullscreen_changed)
+
+    def _on_fullscreen_changed(self):
+        if self.isFullScreen():
+            self.setWindowState(Qt.WindowMaximized)
+            self.fullscreen_action.setIcon(Icon('tofullscreen'))
+        else:
+            self.setWindowState(Qt.WindowFullScreen)
+            self.fullscreen_action.setIcon(Icon('fromfullscreen'))
 
