@@ -17,6 +17,7 @@ from PyQt5.QtCore import Qt, pyqtSignal
 
 from pyqtgraph import GraphicsLayoutWidget, LinearRegionItem
 from .sliders import AnimatedSlider
+from .toolbars import BlackToolBar
 from ..basic_widgets import RoundedPushButton
 from ...config import read_config, save_config
 from ...utils import Icon, show_error
@@ -92,6 +93,8 @@ class Smooth1DPlot(QMainWindow):
                 self._smoothed_y = gaussian_filter1d(y, self.sigma)
             else:
                 self._smoothed_y = y
+        else:
+            self._smoothed_y = None
 
     def __init__(self, parent=None):
         QMainWindow.__init__(self, parent=parent)
@@ -104,8 +107,8 @@ class Smooth1DPlot(QMainWindow):
         self.__init_toolbars__()
 
     def __init_toolbars__(self):
-        param_toolbar = self.addToolBar('Parameters')
-        param_toolbar.setStyleSheet('background-color: black;')
+        param_toolbar = BlackToolBar('Parameters', self)
+        self.addToolBar(param_toolbar)
 
         self.__init_sigma_slider__(param_toolbar)
 
@@ -137,6 +140,7 @@ class Smooth1DPlot(QMainWindow):
     def plot(self):
         if self.x is not None and self.smoothed_y is not None:
             self.image_view.set_data(self.x, self.smoothed_y)
+            self.image_view.plot_item.autoRange()
 
     def clear_plot(self):
         self.image_view.clear_plot()
@@ -159,8 +163,9 @@ class PlotWithBaseLineCorrection(Smooth1DPlot):
 
     def __init_toolbars__(self):
         super().__init_toolbars__()
-        baseline_toolbar = self.addToolBar('Baseline Correction')
-        baseline_toolbar.setStyleSheet('background-color: black;')
+
+        baseline_toolbar = BlackToolBar('Baseline Correction')
+        self.addToolBar(baseline_toolbar)
 
         baseline_button = RoundedPushButton(parent=baseline_toolbar, icon=Icon('baseline'),
                                             radius=30)

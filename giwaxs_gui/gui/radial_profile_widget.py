@@ -9,7 +9,8 @@ from scipy.optimize import curve_fit
 from PyQt5.QtGui import QColor
 
 from .basic_widgets import (BasicInputParametersWidget, ConfirmButton,
-                            RoundedPushButton, PlotWithBaseLineCorrection)
+                            RoundedPushButton, PlotWithBaseLineCorrection,
+                            BlackToolBar)
 from .signal_connection import SignalConnector, SignalContainer
 from .roi.roi_widgets import Roi1D
 from .roi.roi_containers import BasicROIContainer
@@ -35,8 +36,8 @@ class RadialProfileWidget(BasicROIContainer, PlotWithBaseLineCorrection):
     def __init_toolbars__(self):
         super().__init_toolbars__()
 
-        fit_toolbar = self.addToolBar('Fitting')
-        fit_toolbar.setStyleSheet('background-color: black;')
+        fit_toolbar = BlackToolBar('Fitting', self)
+        self.addToolBar(fit_toolbar)
 
         find_peaks_widget = ConfirmButton(Icon('find'), text='Find peaks?')
         find_peaks_widget.label_widget.setStyleSheet(
@@ -53,8 +54,8 @@ class RadialProfileWidget(BasicROIContainer, PlotWithBaseLineCorrection):
         setup_action = fit_toolbar.addAction(Icon('setup'), 'Fit setup')
         setup_action.triggered.connect(self.open_peaks_setup)
 
-        segments_toolbar = self.addToolBar('Segments')
-        segments_toolbar.setStyleSheet('background-color: black;')
+        segments_toolbar = BlackToolBar('Segments', self)
+        self.addToolBar(segments_toolbar)
 
         create_roi_widget = RoundedPushButton(
             icon=Icon('add'), radius=30)

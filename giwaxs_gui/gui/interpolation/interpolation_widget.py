@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 import logging
 
-import numpy as np
-
 from PyQt5.QtWidgets import QMainWindow
 
 from .parameters_widget import InterpolateSetupWindow
 
-from ..basic_widgets import CustomImageViewer
-from ..roi.roi_widgets import EmptyROI, Roi2DRect
+from ..basic_widgets import CustomImageViewer, BlackToolBar
+from ..roi.roi_widgets import Roi2DRect
 from ..roi.roi_containers import AbstractROIContainer
 from ..signal_connection import SignalConnector, SignalContainer
 
@@ -53,9 +51,8 @@ class InterpolateImageWidget(AbstractROIContainer, QMainWindow):
         return Roi2DRect(params)
 
     def __init_toolbar__(self):
-
-        setup_toolbar = self.addToolBar('Setup')
-        setup_toolbar.setStyleSheet('background-color: black;')
+        setup_toolbar = BlackToolBar('Setup', self)
+        self.addToolBar(setup_toolbar)
 
         setup_action = setup_toolbar.addAction(Icon('setup'), 'Setup')
         setup_action.triggered.connect(self.open_setup_window)

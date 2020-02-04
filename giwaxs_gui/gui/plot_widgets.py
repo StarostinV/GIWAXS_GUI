@@ -7,7 +7,7 @@ from pyqtgraph import CircleROI, LineSegmentROI
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QVBoxLayout)
 from PyQt5.QtCore import pyqtSignal, Qt
 
-from .basic_widgets import CustomImageViewer, AnimatedSlider
+from .basic_widgets import CustomImageViewer, AnimatedSlider, BlackToolBar
 from .signal_connection import SignalConnector, SignalContainer, AppNode
 from .roi.roi_widgets import Roi2DRing
 from .roi.roi_containers import AbstractROIContainer
@@ -265,8 +265,8 @@ class Basic2DImageWidget(AppNode, QMainWindow):
         self.__init_toolbar__()
 
     def __init_toolbar__(self):
-        toolbar = self.addToolBar('Main')
-        toolbar.setStyleSheet('background-color: black;')
+        toolbar = BlackToolBar('Geometry', self)
+        self.addToolBar(toolbar)
 
         rotate_action = toolbar.addAction(Icon('rotate'), 'Rotate')
         rotate_action.triggered.connect(
@@ -280,10 +280,7 @@ class Basic2DImageWidget(AppNode, QMainWindow):
         flip_v.triggered.connect(
             lambda: self.add_transformation('vertical'))
 
-        geometry_toolbar = self.addToolBar('Geometry')
-        geometry_toolbar.setStyleSheet('background-color: black;')
-
         set_beam_center_action = toolbar.addAction(
             Icon('center'), 'Beam center')
         set_beam_center_action.triggered.connect(
-            self.centralWidget().open_geometry_parameters)
+            self.image_viewer.open_geometry_parameters)

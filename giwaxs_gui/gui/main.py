@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QMainWindow
 
 from .dock_area import AppDockArea
+from .basic_widgets import ToolBar
 from ..utils import center_widget, Icon
 
 
@@ -30,8 +31,8 @@ class GiwaxsProgram(QMainWindow):
         # open_image_action.setShortcut('Ctrl+A')
         # open_image_action.triggered.connect(self._open_image_dialog)
         # self.toolbar.addAction(open_image_action)
-
-        docks_toolbar = self.addToolBar('Docks')
+        docks_toolbar = ToolBar('Docks', self)
+        self.addToolBar(docks_toolbar)
 
         control_widget = docks_toolbar.addAction(Icon('folder'), 'File widget')
         control_widget.triggered.connect(lambda: self.main_widget.show_hide_docks('file_widget'))
