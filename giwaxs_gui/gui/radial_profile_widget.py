@@ -95,6 +95,8 @@ class RadialProfileWidget(BasicROIContainer, PlotWithBaseLineCorrection):
         self.update_x_axis()
 
     def find_peaks(self):
+        if self.y is None:
+            return
         # TODO show message if number of peaks exceeds max number and suggest to increase sigma.
         if self._fit_parameters_dict.get('sigma_find', None) is not None:
             self.set_sigma(self._fit_parameters_dict['sigma_find'])
@@ -107,6 +109,8 @@ class RadialProfileWidget(BasicROIContainer, PlotWithBaseLineCorrection):
         sc.send()
 
     def fit_selected(self):
+        if self.y is None:
+            return
         if self._fit_parameters_dict.get('sigma_fit', None) is not None:
             self.set_sigma(self._fit_parameters_dict['sigma_fit'])
         sc = SignalContainer(app_node=self)
@@ -121,6 +125,8 @@ class RadialProfileWidget(BasicROIContainer, PlotWithBaseLineCorrection):
         sc.send()
 
     def fit_together(self):
+        if self.y is None:
+            return
         if self._fit_parameters_dict.get('sigma_fit', None) is not None:
             self.set_sigma(self._fit_parameters_dict['sigma_fit'])
         sc = SignalContainer(app_node=self)
