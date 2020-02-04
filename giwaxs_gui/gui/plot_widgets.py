@@ -28,6 +28,7 @@ class GiwaxsImageViewer(AbstractROIContainer, CustomImageViewer):
             CircleROI.__init__(self, (beam_center[1], beam_center[0]),
                                self._ROI_SIZE, movable=False, parent=parent)
             self._center = None
+            self._scale = 1
             self.set_center(beam_center)
 
         def set_center(self, value: tuple, y=None, update=True, finish=True, ):
@@ -37,13 +38,15 @@ class GiwaxsImageViewer(AbstractROIContainer, CustomImageViewer):
             super(GiwaxsImageViewer.BeamCenterRoi, self).setPos(
                 pos, y, update, finish)
 
-        def set_size(self, size: float):
+        def set_size(self, size: float = None):
+            size = size or self._ROI_SIZE
+            size *= self._scale
             self.setSize((size, size), update=False, finish=False)
             self.set_center(self._center)
 
         def set_scale(self, scale: float):
-            size = self._ROI_SIZE * scale
-            self.set_size(size)
+            self._scale = scale
+            self.set_size()
 
     class ZeroAngleRoi(LineSegmentROI):
         _ROI_SIZE = 300
@@ -101,12 +104,12 @@ class GiwaxsImageViewer(AbstractROIContainer, CustomImageViewer):
 
     def process_signal(self, s: SignalContainer):
         AbstractROIContainer.process_signal(self, s)
-        for _ in s.image_changed():
+        if s.image_changed():
             self.set_data(self.image.image, change_limits=False)
             self.set_levels(self.image.intensity_limits)
-        for _ in s.transformation_added():
+        if s.transformation_added():
             self.set_data(self.image.image, change_limits=False)
-        for _ in s.geometry_changed():
+        if s.geometry_changed():
             self.update_beam_center(self.image.beam_center, emit_value=False)
 
     def _on_limits_changed(self):
@@ -136,6 +139,7 @@ class GiwaxsImageViewer(AbstractROIContainer, CustomImageViewer):
         self.angle_roi = self.ZeroAngleRoi(self.beam_center, 0, False, self.image_item)
         self.angle_roi.setZValue(10)
         self.image_plot.addItem(self.angle_roi)
+        self.center_roi.hide()
 
     def open_geometry_parameters(self):
 
@@ -143,14 +147,16 @@ class GiwaxsImageViewer(AbstractROIContainer, CustomImageViewer):
         if self.image.image is not None and self._geometry_params_widget is None:
             self._geometry_params_widget = GeometryParametersWidget(
                 self.image.shape, self.beam_center, scale=self.image.scale)
+            self.center_roi.show()
             self._geometry_params_widget.change_center.connect(
                 self.update_beam_center)
             self._geometry_params_widget.change_zero_angle.connect(self.set_zero_angle)
             self._geometry_params_widget.change_invert_angle.connect(self.set_invert_angle)
             self._geometry_params_widget.scale_changed.connect(self.emit_scale_changed)
-            self._geometry_params_widget.close_event.connect(self.on_closing_beam_center_widget)
+            self._geometry_params_widget.close_event.connect(self.on_closing_geometry_parameters)
 
-    def on_closing_beam_center_widget(self):
+    def on_closing_geometry_parameters(self):
+        self.center_roi.set_size()
         self._geometry_params_widget = None
         SignalContainer(app_node=self).geometry_changed_finish(0).send()
 
