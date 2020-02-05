@@ -149,6 +149,7 @@ class Roi1DAngular(Roi1D):
 class Roi2DRect(AbstractROI, RectROI):
     _USE_BRIGHT_COLOR = True
     _g = 180 / np.pi
+
     # TODO: overwrite Handle class to manage moving and be able to fix/unfix it
     # TODO: fix moving in each direction separately
 
@@ -370,35 +371,48 @@ class RingParametersWidget(AbstractROI, QWidget):
         self.label.setText(name)
 
     def __init_ui__(self, params, radius_range, width_range, decimals):
-        self.width_slider = ControlSlider('Width', width_range,
-                                          params.width,
-                                          self, decimals=decimals)
-        self.radius_slider = ControlSlider('Radius', radius_range,
-                                           params.radius,
-                                           self, decimals=decimals)
-        self.setup_button = RoundedPushButton(
-            icon=Icon('setup_white'), radius=30,
-            background_color=QColor(255, 255, 255, 100))
-        self.delete_button = DeleteButton(self)
-        self.setup_button.clicked.connect(self.open_setup_window)
-        self.delete_button.clicked.connect(
-            lambda: self.deleteClicked.emit(self.value))
-        self.radius_slider.statusChanged.connect(self.on_slider_status_changed)
-        self.width_slider.statusChanged.connect(self.on_slider_status_changed)
-
-        self.radius_slider.valueChanged.connect(self.send_value)
-        self.width_slider.valueChanged.connect(self.send_value)
+        self.width_slider = self.__init_slider__('Width', width_range,
+                                                 params.width,
+                                                 self, decimals=decimals)
+        self.radius_slider = self.__init_slider__('Radius', radius_range,
+                                                  params.radius,
+                                                  self, decimals=decimals)
+        self.setup_button = self.__init_setup_button__()
+        self.delete_button = self.__init_delete_button__()
+        self.label = self.__init_label__()
 
         layout = QHBoxLayout(self)
-        self.label = QLineEdit(self.name)
-        self.label.textEdited.connect(self.send_name)
-        self.label.setStyleSheet('QLineEdit {border: none;}')
-        self.setLayout(layout)
+
         layout.addWidget(self.label)
         layout.addWidget(self.radius_slider)
         layout.addWidget(self.width_slider)
         layout.addWidget(self.setup_button)
         layout.addWidget(self.delete_button)
+
+    def __init_slider__(self, *args, **kwargs):
+        slider = ControlSlider(*args, **kwargs)
+        slider.statusChanged.connect(self.on_slider_status_changed)
+        slider.valueChanged.connect(self.send_value)
+        return slider
+
+    def __init_label__(self):
+        label = QLineEdit(self.name)
+        label.textEdited.connect(self.send_name)
+        label.setStyleSheet('QLineEdit {border: none;}')
+        return label
+
+    def __init_setup_button__(self):
+        setup_button = RoundedPushButton(
+            icon=Icon('setup_white'), radius=30,
+            background_color=QColor(255, 255, 255, 100))
+        setup_button.clicked.connect(self.open_setup_window)
+        return setup_button
+
+    def __init_delete_button__(self):
+        delete_button = DeleteButton(self)
+        delete_button.clicked.connect(
+            lambda: self.deleteClicked.emit(self.value))
+        return delete_button
 
     def on_slider_status_changed(self, status):
         if status == 'show':
@@ -457,42 +471,24 @@ class RingSegmentParametersWidget(RingParametersWidget):
             self.angle_std_slider.set_value(value.angle_std, True)
 
     def __init_ui__(self, params, radius_range, width_range, decimals):
-        self.width_slider = ControlSlider('Width', width_range,
-                                          params.width,
-                                          self, decimals=decimals)
-        self.radius_slider = ControlSlider('Radius', radius_range,
-                                           params.radius,
-                                           self, decimals=decimals)
-        self.angle_slider = ControlSlider('Angle', (0, 360),
-                                          params.angle,
-                                          self, decimals=decimals)
-        self.angle_std_slider = ControlSlider('Angle width', (0, 360),
-                                              params.angle_std,
-                                              self, decimals=decimals)
-        self.setup_button = RoundedPushButton(
-            icon=Icon('setup_white'), radius=30,
-            background_color=QColor(255, 255, 255, 100))
-        self.delete_button = DeleteButton(self)
-        self.setup_button.clicked.connect(self.open_setup_window)
-        self.delete_button.clicked.connect(
-            lambda: self.deleteClicked.emit(self.value))
-        self.radius_slider.statusChanged.connect(self.on_slider_status_changed)
-        self.width_slider.statusChanged.connect(self.on_slider_status_changed)
-        self.angle_slider.statusChanged.connect(self.on_slider_status_changed)
-        self.angle_std_slider.statusChanged.connect(self.on_slider_status_changed)
-
-        self.radius_slider.valueChanged.connect(self.send_value)
-        self.width_slider.valueChanged.connect(self.send_value)
-        self.angle_slider.valueChanged.connect(self.send_value)
-        self.angle_std_slider.valueChanged.connect(self.send_value)
+        self.width_slider = self.__init_slider__('Width', width_range,
+                                                 params.width,
+                                                 self, decimals=decimals)
+        self.radius_slider = self.__init_slider__('Radius', radius_range,
+                                                  params.radius,
+                                                  self, decimals=decimals)
+        self.angle_slider = self.__init_slider__('Angle', (0, 360),
+                                                 params.angle,
+                                                 self, decimals=decimals)
+        self.angle_std_slider = self.__init_slider__('Angle width', (0, 360),
+                                                     params.angle_std,
+                                                     self, decimals=decimals)
+        self.setup_button = self.__init_setup_button__()
+        self.delete_button = self.__init_delete_button__()
+        self.label = self.__init_label__()
 
         layout = QGridLayout(self)
-        self.label = QLineEdit(self.name)
-        self.label.editingFinished.connect(
-            lambda: self.set_name(self.label.text())
-        )
-        self.label.setStyleSheet('QLineEdit {border: none;}')
-        self.setLayout(layout)
+
         layout.addWidget(self.label, 0, 0, 2, 1)
         layout.addWidget(self.radius_slider, 0, 1)
         layout.addWidget(self.angle_slider, 0, 2)
