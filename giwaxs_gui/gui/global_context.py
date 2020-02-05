@@ -227,7 +227,7 @@ class Image(object):
 
 def get_limits(image: np.ndarray, sigma_factor: float = 2):
     m, s = image.mean(), image.std() * sigma_factor
-    return m - s, m + s
+    return max((m - s, image.min())), min((m + s, image.max()))
 
 
 def normalize_image(image: np.ndarray, sigma_factor: float = None):
