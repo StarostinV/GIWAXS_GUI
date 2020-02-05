@@ -93,10 +93,10 @@ class AppDataHolder(SignalConnector):
         selected_keys = list()
         # These keys are the keys of created or moved
         # rois. They will form StatusChangedSignal if not empty.
-        for _ in s.geometry_changed():
+        if s.geometry_changed():
             self.on_geometry_changed(s)
 
-        for _ in s.scale_changed():
+        if s.scale_changed():
             self.on_scale_changed(s)
 
         for signal in s.segment_deleted():
