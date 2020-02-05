@@ -148,7 +148,6 @@ class Roi1DAngular(Roi1D):
 
 class Roi2DRect(AbstractROI, RectROI):
     _USE_BRIGHT_COLOR = True
-    _g = 180 / np.pi
 
     # TODO: overwrite Handle class to manage moving and be able to fix/unfix it
     # TODO: fix moving in each direction separately
@@ -345,6 +344,7 @@ class RingParametersWidget(AbstractROI, QWidget):
     @value.setter
     def value(self, value):
         if value != self.parameters:
+            self.parameters = value
             self.radius_slider.set_value(value.radius, True)
             self.width_slider.set_value(value.width, True)
 
@@ -465,6 +465,7 @@ class RingSegmentParametersWidget(RingParametersWidget):
     @value.setter
     def value(self, value):
         if value != self.parameters:
+            self.parameters = value
             self.radius_slider.set_value(value.radius, True)
             self.width_slider.set_value(value.width, True)
             self.angle_slider.set_value(value.angle, True)
