@@ -6,12 +6,12 @@ from .signal_types import SignalTypes
 from .signal_container import SignalContainer
 from .signal_data import StatusChangedContainer
 
-from ..global_context import Image
+from ..global_context import Image  # only for type hinting
 from ...utils import RoiParameters
 
 logger = logging.getLogger(__name__)
 
-__all__ = ['SignalConnector', 'AppDataHolder']
+__all__ = ['SignalConnector', 'CentralSignalConnector']
 
 
 class SignalConnector(QObject):
@@ -30,8 +30,6 @@ class SignalConnector(QObject):
         return SignalConnector(name, self.image, self)
 
     def pass_downward(self, s: SignalContainer) -> SignalContainer or None:
-        """Redefine to add additional conditions to pass downward signal
-        or to change it."""
         singals_to_remove = list()
         if not s:
             return
@@ -50,8 +48,6 @@ class SignalConnector(QObject):
         return s
 
     def pass_upward(self, s: SignalContainer) -> SignalContainer or None:
-        """Redefine to add additional conditions to pass upward signal
-        or to change it."""
         if not s:
             return
         for signal in s:
@@ -74,7 +70,7 @@ class SignalConnector(QObject):
             self.upwardSignal.emit(s)
 
 
-class AppDataHolder(SignalConnector):
+class CentralSignalConnector(SignalConnector):
 
     def __init__(self, image: Image):
         SignalConnector.__init__(self, 'AppDataHolder', image)
@@ -132,9 +128,7 @@ class AppDataHolder(SignalConnector):
         ##
 
         if selected_keys and not self._status_changed_sent:
-            data = StatusChangedContainer(
-                selected_keys, True, True
-            )
+            data = StatusChangedContainer(selected_keys, True, True)
             data_list = self.on_status_changed(data)
             for data in data_list:
                 s.status_changed(data)
@@ -183,11 +177,9 @@ class AppDataHolder(SignalConnector):
             self.selected_keys.remove(k)
 
         if set_active_keys:
-            data_list.append(
-                StatusChangedContainer(set_active_keys, True))
+            data_list.append(StatusChangedContainer(set_active_keys, True))
         if set_inactive_keys:
-            data_list.append(
-                StatusChangedContainer(set_inactive_keys, False))
+            data_list.append(StatusChangedContainer(set_inactive_keys, False))
         return data_list
 
     def emit_upward(self, s: SignalContainer):

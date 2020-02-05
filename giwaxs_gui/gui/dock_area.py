@@ -3,7 +3,7 @@ from collections import defaultdict
 
 from pyqtgraph.dockarea import DockArea, Dock
 
-from .signal_connection import AppDataHolder, AppNode, SignalContainer
+from .signal_connection import CentralSignalConnector, AppNode
 from .control_widget import ControlWidget
 from .plot_widgets import Basic2DImageWidget
 from .interpolation.interpolation_widget import InterpolateImageWidget
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class AppDockArea(DockArea, AppNode):
     def __init__(self):
         DockArea.__init__(self)
-        AppNode.__init__(self, AppDataHolder(Image()))
+        AppNode.__init__(self, CentralSignalConnector(Image()))
         self._status_dict = defaultdict(lambda: True)
 
         self.__init_image_view__()
@@ -90,9 +90,6 @@ class AppDockArea(DockArea, AppNode):
         self.file_dock = Dock('Files')
         self.file_dock.addWidget(self.file_widget)
         self.addDock(self.file_dock, position='left')
-
-    def update_plot(self, image):
-        SignalContainer(app_node=self).data_changed(image).send()
 
     def show_hide_docks(self, dock_name: str):
         assert dock_name in self._DOCK_DICT.keys()
