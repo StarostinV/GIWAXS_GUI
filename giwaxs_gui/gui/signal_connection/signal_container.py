@@ -1,12 +1,9 @@
 import logging
 import weakref
-
 from functools import wraps
 
 from .signal_keys import SignalKeys
 from .signal_types import SignalTypes, _get_type_by_key
-from .signal_data import (SegmentSignalData,
-                          EmptySignalData, StatusChangedSignal)
 from .signal import Signal
 from ..exceptions import SignalNotFoundError, AppNodeNotProvidedError
 
@@ -38,7 +35,7 @@ class BasicSignalContainer(object):
             raise AppNodeNotProvidedError()
         app_node.signal_connector.emit_upward(self)
 
-    def append(self, signal: 'Signal', copy: bool = False,
+    def append(self, signal: Signal, copy: bool = False,
                add_later: bool = False):
         if not copy:
             if add_later:
@@ -56,7 +53,7 @@ class BasicSignalContainer(object):
             new_container.append(signal, add_later=add_later)
             return new_container
 
-    def append_later(self, signal: 'Signal'):
+    def append_later(self, signal: Signal):
         self.append(signal, add_later=True)
 
     def finish_adding_later(self):
@@ -67,7 +64,7 @@ class BasicSignalContainer(object):
                 self._signals[k] = v
         self._add_later = dict()
 
-    def remove(self, signal: 'Signal', copy: bool = True) -> 'BasicSignalContainer' or None:
+    def remove(self, signal: Signal, copy: bool = True) -> 'BasicSignalContainer' or None:
         # TODO: Add option to remove later?
         try:
             self._signals[signal.key].remove(signal)
@@ -103,12 +100,11 @@ class BasicSignalContainer(object):
 def _overload_signal_container_functions(func):
     @wraps(func)
     def wrapper(self, data=None, *args, **kwargs):
-        key, data_class = func(self)
+        key = getattr(SignalKeys, func.__name__)
         if data is None:
             return self[key]
         else:
-            self.add_signal(key, data_class(data),
-                            *args, **kwargs)
+            self.add_signal(key, data, *args, **kwargs)
             return self
 
     return wrapper
@@ -131,59 +127,61 @@ class SignalContainer(BasicSignalContainer):
         return self
 
     # The following functions are shortcuts to simplify syntax.
+    # Method names should match to names of SignalKeys fields.
+    # (defined explicitly to increase readability and allow PyCharm hints, for instance.)
 
     @_overload_signal_container_functions
     def image_changed(self, data=None, *args, **kwargs):
-        return SignalKeys.image_changed, EmptySignalData
+        pass
 
     @_overload_signal_container_functions
     def geometry_changed(self, data=None, *args, **kwargs):
-        return SignalKeys.geometry_changed, EmptySignalData
+        pass
 
     @_overload_signal_container_functions
     def geometry_changed_finish(self, data=None, *args, **kwargs):
-        return SignalKeys.geometry_changed_finish, EmptySignalData
+        pass
 
     @_overload_signal_container_functions
     def status_changed(self, data=None, *args, **kwargs):
-        return SignalKeys.status_changed, StatusChangedSignal
+        pass
 
     @_overload_signal_container_functions
     def segment_created(self, data=None, *args, **kwargs):
-        return SignalKeys.segment_created, SegmentSignalData
+        pass
 
     @_overload_signal_container_functions
     def segment_moved(self, data=None, *args, **kwargs):
-        return SignalKeys.segment_moved, SegmentSignalData
+        pass
 
     @_overload_signal_container_functions
     def segment_deleted(self, data=None, *args, **kwargs):
-        return SignalKeys.segment_deleted, SegmentSignalData
+        pass
 
     @_overload_signal_container_functions
     def segment_fixed(self, data=None, *args, **kwargs):
-        return SignalKeys.segment_fixed, SegmentSignalData
+        pass
 
     @_overload_signal_container_functions
     def segment_unfixed(self, data=None, *args, **kwargs):
-        return SignalKeys.segment_unfixed, SegmentSignalData
+        pass
 
     @_overload_signal_container_functions
     def transformation_added(self, data=None, *args, **kwargs):
-        return SignalKeys.transformation_added, EmptySignalData
+        pass
 
     @_overload_signal_container_functions
     def intensity_limits_changed(self, data=None, *args, **kwargs):
-        return SignalKeys.intensity_limits_changed, EmptySignalData
+        pass
 
     @_overload_signal_container_functions
     def name_changed(self, data=None, *args, **kwargs):
-        return SignalKeys.name_changed, SegmentSignalData
+        pass
 
     @_overload_signal_container_functions
     def scale_changed(self, data=None, *args, **kwargs):
-        return SignalKeys.scale_changed, EmptySignalData
+        pass
 
     @_overload_signal_container_functions
     def type_changed(self, data=None, *args, **kwargs):
-        return SignalKeys.type_changed, SegmentSignalData
+        pass

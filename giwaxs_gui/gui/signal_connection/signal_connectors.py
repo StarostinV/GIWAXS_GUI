@@ -3,8 +3,8 @@ import logging
 from PyQt5.QtCore import QObject, pyqtSignal
 
 from .signal_types import SignalTypes
-from .signal_data import (SegmentSignalData, StatusChangedContainer)
 from .signal_container import SignalContainer
+from .signal_data import StatusChangedContainer
 
 from ..global_context import Image
 from ...utils import RoiParameters
@@ -195,18 +195,20 @@ class AppDataHolder(SignalConnector):
     def emit_upward(self, s: SignalContainer):
         self.emit_downward(s)
 
-    def add_segment(self, segment: RoiParameters) -> SegmentSignalData:
+    def add_segment(self, segment: RoiParameters):
         r_angle, r_angle_std = self.image.ring_angle, self.image.ring_angle_str
-        if segment.key is not None:
+        if segment.key is not None:  # segment uploaded from file
             new_key = segment.key
-            segment = segment._replace(angle=r_angle,
-                                       angle_std=r_angle_std)
-        else:
+        else:  # new segment
             new_key = self._get_new_key()
-            segment = segment._replace(key=new_key, angle=r_angle,
-                                       angle_std=r_angle_std)
+            if segment.type == segment.roi_types.ring or segment.angle is None:
+                segment = segment._replace(key=new_key,
+                                           angle=r_angle,
+                                           angle_std=r_angle_std)
+            else:
+                segment = segment._replace(key=new_key)
         self.segments_dict[new_key] = segment
-        return SegmentSignalData(segment)
+        return segment
 
     def _get_new_key(self):
         if self.segments_dict:
