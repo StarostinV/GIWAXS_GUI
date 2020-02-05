@@ -13,23 +13,21 @@ logger = logging.getLogger(__name__)
 
 __all__ = ['SignalConnector', 'AppDataHolder']
 
-_GlobalImageObject = Image()
-
 
 class SignalConnector(QObject):
     downwardSignal = pyqtSignal(object)
     upwardSignal = pyqtSignal(object)
 
-    def __init__(self, name: str = None,
+    def __init__(self, name: str, image: Image,
                  upper_connector: 'SignalConnector' = None):
         self.NAME = name
         QObject.__init__(self)
-        self.image = _GlobalImageObject
+        self.image = image  # Dependency Injection
         if upper_connector:
             upper_connector.connect_downward(self)
 
-    def get_lower_connector(self, name: str = None) -> 'SignalConnector':
-        return SignalConnector(name, self)
+    def get_lower_connector(self, name: str) -> 'SignalConnector':
+        return SignalConnector(name, self.image, self)
 
     def pass_downward(self, s: SignalContainer) -> SignalContainer or None:
         """Redefine to add additional conditions to pass downward signal
@@ -78,8 +76,8 @@ class SignalConnector(QObject):
 
 class AppDataHolder(SignalConnector):
 
-    def __init__(self):
-        SignalConnector.__init__(self, 'AppDataHolder')
+    def __init__(self, image: Image):
+        SignalConnector.__init__(self, 'AppDataHolder', image)
         self.segments_dict = dict()
         self.selected_keys = list()
         self._status_changed_sent = False

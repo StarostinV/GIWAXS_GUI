@@ -10,6 +10,7 @@ from .interpolation.interpolation_widget import InterpolateImageWidget
 from .radial_profile_widget import RadialProfileWidget
 from .angular_profile_widget import AngularProfileWidget
 from .file_manager import FileWidget
+from .global_context import Image
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ logger = logging.getLogger(__name__)
 class AppDockArea(DockArea, AppNode):
     def __init__(self):
         DockArea.__init__(self)
-        AppNode.__init__(self, AppDataHolder())
+        AppNode.__init__(self, AppDataHolder(Image()))
         self._status_dict = defaultdict(lambda: True)
 
         self.__init_image_view__()
