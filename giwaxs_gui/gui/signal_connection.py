@@ -1,9 +1,11 @@
 import logging
 import weakref
 from copy import deepcopy
-from collections import defaultdict, namedtuple
+from collections import defaultdict
+from typing import NamedTuple
 from functools import wraps
 from abc import abstractmethod
+from enum import Enum, auto
 
 import numpy as np
 
@@ -11,49 +13,59 @@ from PyQt5.QtCore import QObject, pyqtSignal
 
 from .exceptions import SignalNotFoundError, AppNodeNotProvidedError
 from .global_context import Image
-from ..utils import RoiParameters
+from ..utils import RoiParameters, AutoName
 
 logger = logging.getLogger(__name__)
 
-_SIGNAL_TYPES = ('broadcast', 'onlyForNames', 'exceptForNames')
-# TODO change to ENUM
-
-_DEFAULT_SIGNAL_TYPE = 'broadcast'
-
 _GlobalImageObject = Image()
+
+
 # TODO change to dependency injection
 
 
-class SignalKeys(object):
-    # TODO: change to ENUM
-    _image_changed_key = 'image_changed'
-    _geometry_changed_key = 'geometry_changed'
-    _geometry_changed_finish_key = 'geometry_changed_finish'
-    _transformation_key = 'transformation'
+class SignalKeys(AutoName):
+    image_changed = auto()
+    geometry_changed = auto()
+    geometry_changed_finish = auto()
+    transformation_added = auto()
 
-    _status_changed_key = 'status_changed'
-    _name_changed_key = 'name_changed'
-    _scale_changed_key = 'scale_changed'
-    _type_changed_key = 'type_changed'
+    status_changed = auto()
+    name_changed = auto()
+    scale_changed = auto()
+    type_changed = auto()
 
-    _segment_created_key = 'segment_created'
-    _segment_deleted_key = 'segment_deleted'
-    _segment_moved_key = 'segment_moved'
+    segment_created = auto()
+    segment_deleted = auto()
+    segment_moved = auto()
 
-    _segment_fixed_key = 'segment_fixed'
-    _segment_unfixed_key = 'segment_unfixed'
-    _intensity_limits_changed_key = 'intensity_limits_changed'
+    segment_fixed = auto()
+    segment_unfixed = auto()
+    intensity_limits_changed = auto()
+
+
+class SignalTypes(Enum):
+    broadcast = 0
+    only_for_names = 1
+    except_for_names = 2
+    default = 0
 
 
 _SPECIAL_SIGNAL_TYPES = {
-    SignalKeys._name_changed_key: 'exceptForNames',
-    SignalKeys._segment_moved_key: 'exceptForNames',
-    SignalKeys._geometry_changed_key: 'exceptForNames',
-    SignalKeys._type_changed_key: 'exceptForNames'
+    SignalKeys.name_changed: SignalTypes.except_for_names,
+    SignalKeys.segment_moved: SignalTypes.except_for_names,
+    SignalKeys.geometry_changed: SignalTypes.except_for_names,
+    SignalKeys.type_changed: SignalTypes.except_for_names
 }
 
 
+def _get_type_by_key(signal_key: SignalKeys):
+    return _SPECIAL_SIGNAL_TYPES.get(signal_key, SignalTypes.default)
+
+
 class BasicSignalContainer(object):
+    SignalKeys = SignalKeys
+    SignalTypes = SignalTypes
+
     @property
     def adding_finished(self):
         return bool(self._add_later)
@@ -77,9 +89,9 @@ class BasicSignalContainer(object):
                add_later: bool = False):
         if not copy:
             if add_later:
-                self._add_later[signal.name].append(signal)
+                self._add_later[signal.key].append(signal)
             else:
-                self._signals[signal.name].append(signal)
+                self._signals[signal.key].append(signal)
         else:
             new_container = self.copy()
             new_container.append(signal, add_later=add_later)
@@ -93,10 +105,10 @@ class BasicSignalContainer(object):
             self._signals[k] += v
         self._add_later = defaultdict(list)
 
-    def remove(self, signal, copy: bool = True) -> 'BasicSignalContainer' or None:
+    def remove(self, signal: 'Signal', copy: bool = True) -> 'BasicSignalContainer' or None:
         # TODO: Add option to remove later?
         try:
-            self._signals[signal.name].remove(signal)
+            self._signals[signal.key].remove(signal)
         except ValueError:
             raise SignalNotFoundError()
         if copy:
@@ -107,7 +119,7 @@ class BasicSignalContainer(object):
     def copy(self, copy_add_later: bool = True):
         new_signals_dict = defaultdict(list)
         for signal in self:
-            new_signals_dict[signal.name].append(signal.copy())
+            new_signals_dict[signal.key].append(signal.copy())
         new_container = self.__class__(new_signals_dict)
         if copy_add_later:
             for k, v in self._add_later.items():
@@ -140,9 +152,9 @@ def _overload_signal_container_functions(func):
     return wrapper
 
 
-class SignalContainer(BasicSignalContainer, SignalKeys):
+class SignalContainer(BasicSignalContainer):
     def add_signal(self,
-                   signal_name, data, signal_type=None,
+                   signal_name: SignalKeys, data, signal_type: SignalTypes = None,
                    address_names: list or str = None,
                    add_later: bool = False):
         if not address_names:
@@ -150,12 +162,11 @@ class SignalContainer(BasicSignalContainer, SignalKeys):
         if isinstance(address_names, str):
             address_names = [address_names]
         if not signal_type:
-            signal_type = _SPECIAL_SIGNAL_TYPES.get(
-                signal_name, _DEFAULT_SIGNAL_TYPE)
+            signal_type = _get_type_by_key(signal_name)
         signal = Signal(data, signal_name, signal_type, address_names)
 
         if add_later:
-            self._add_later[signal.name].append(signal)
+            self._add_later[signal.key].append(signal)
         else:
             self.append(signal)
         return self
@@ -164,59 +175,59 @@ class SignalContainer(BasicSignalContainer, SignalKeys):
 
     @_overload_signal_container_functions
     def image_changed(self, data=None, *args, **kwargs):
-        return self._image_changed_key, EmptySignalData
+        return SignalKeys.image_changed, EmptySignalData
 
     @_overload_signal_container_functions
     def geometry_changed(self, data=None, *args, **kwargs):
-        return self._geometry_changed_key, EmptySignalData
+        return SignalKeys.geometry_changed, EmptySignalData
 
     @_overload_signal_container_functions
     def geometry_changed_finish(self, data=None, *args, **kwargs):
-        return self._geometry_changed_finish_key, EmptySignalData
+        return SignalKeys.geometry_changed_finish, EmptySignalData
 
     @_overload_signal_container_functions
     def status_changed(self, data=None, *args, **kwargs):
-        return self._status_changed_key, StatusChangedSignal
+        return SignalKeys.status_changed, StatusChangedSignal
 
     @_overload_signal_container_functions
     def segment_created(self, data=None, *args, **kwargs):
-        return self._segment_created_key, SegmentSignalData
+        return SignalKeys.segment_created, SegmentSignalData
 
     @_overload_signal_container_functions
     def segment_moved(self, data=None, *args, **kwargs):
-        return self._segment_moved_key, SegmentSignalData
+        return SignalKeys.segment_moved, SegmentSignalData
 
     @_overload_signal_container_functions
     def segment_deleted(self, data=None, *args, **kwargs):
-        return self._segment_deleted_key, SegmentSignalData
+        return SignalKeys.segment_deleted, SegmentSignalData
 
     @_overload_signal_container_functions
     def segment_fixed(self, data=None, *args, **kwargs):
-        return self._segment_fixed_key, SegmentSignalData
+        return SignalKeys.segment_fixed, SegmentSignalData
 
     @_overload_signal_container_functions
     def segment_unfixed(self, data=None, *args, **kwargs):
-        return self._segment_unfixed_key, SegmentSignalData
+        return SignalKeys.segment_unfixed, SegmentSignalData
 
     @_overload_signal_container_functions
     def transformation_added(self, data=None, *args, **kwargs):
-        return self._transformation_key, EmptySignalData
+        return SignalKeys.transformation_added, EmptySignalData
 
     @_overload_signal_container_functions
     def intensity_limits_changed(self, data=None, *args, **kwargs):
-        return self._intensity_limits_changed_key, EmptySignalData
+        return SignalKeys.intensity_limits_changed, EmptySignalData
 
     @_overload_signal_container_functions
     def name_changed(self, data=None, *args, **kwargs):
-        return self._name_changed_key, SegmentSignalData
+        return SignalKeys.name_changed, SegmentSignalData
 
     @_overload_signal_container_functions
     def scale_changed(self, data=None, *args, **kwargs):
-        return self._scale_changed_key, EmptySignalData
+        return SignalKeys.scale_changed, EmptySignalData
 
     @_overload_signal_container_functions
     def type_changed(self, data=None, *args, **kwargs):
-        return self._type_changed_key, SegmentSignalData
+        return SignalKeys.type_changed, SegmentSignalData
 
 
 class BasicSignalData(object):
@@ -256,10 +267,10 @@ class ImmutableSignalData(BasicSignalData):
         return self._data
 
 
-StatusChangedContainer = namedtuple(
-    'StatusChangedSignal', 'keys status change_others')
-
-StatusChangedContainer.__new__.__defaults__ = (True,)
+class StatusChangedContainer(NamedTuple):
+    keys: list
+    status: bool
+    change_others: bool = True
 
 
 class StatusChangedSignal(ImmutableSignalData):
@@ -283,11 +294,11 @@ class NumpySignalData(BasicSignalData):
 
 
 class Signal(object):
-    __slots__ = ('type', 'name', 'data', 'address_names')
+    __slots__ = ('type', 'key', 'data', 'address_names')
 
     def __init__(self, data: BasicSignalData,
-                 signal_name: str,
-                 signal_type: str,
+                 signal_key: SignalKeys,
+                 signal_type: SignalTypes,
                  address_names: list = None):
         """
         Signal is emitted in SignalContainer through the SignalConnector.
@@ -303,13 +314,13 @@ class Signal(object):
 
         :param data:
         :param signal_type:
-        :param signal_name:
+        :param signal_key:
         :param address_names:
         """
-        if signal_type not in _SIGNAL_TYPES:
+        if signal_type not in SignalTypes.__members__.values():
             raise ValueError('Unknown signal type.')
         self.type = signal_type
-        self.name = signal_name
+        self.key = signal_key
         self.address_names = address_names
         self.data = data
 
@@ -320,15 +331,15 @@ class Signal(object):
         return self.data()
 
     def __repr__(self):
-        return f'Signal {self.name}, type = {self.type}.'
+        return f'Signal {self.key}, type = {self.type}.'
 
     def copy(self):
-        return Signal(self.data, self.name, self.type,
+        return Signal(self.data, self.key, self.type,
                       deepcopy(self.address_names))
 
     def __eq__(self, other):
         if (
-                self.name == other.name and
+                self.key == other.name and
                 self.address_names == other.address_names and
                 self.type == other.type and
                 self.data == other.data
@@ -359,12 +370,12 @@ class SignalConnector(QObject):
         if not s:
             return
         for signal in s:
-            if signal.type == 'broadcast':
+            if signal.type == SignalTypes.broadcast:
                 continue
-            if (self.NAME and signal.type == 'onlyForNames' and
+            if (self.NAME and signal.type == SignalTypes.only_for_names and
                     self.NAME not in signal.address_names):
                 singals_to_remove.append(signal)
-            if (self.NAME and signal.type == 'exceptForNames' and
+            if (self.NAME and signal.type == SignalTypes.except_for_names and
                     self.NAME in signal.address_names):
                 singals_to_remove.append(signal)
 
@@ -378,7 +389,7 @@ class SignalConnector(QObject):
         if not s:
             return
         for signal in s:
-            if self.NAME and signal.type != 'broadcast':
+            if self.NAME and signal.type != SignalTypes.broadcast:
                 signal.add_name(self.NAME)
         return s
 
@@ -456,7 +467,7 @@ class AppDataHolder(SignalConnector):
 
         if selected_keys and not self._status_changed_sent:
             data = StatusChangedContainer(
-                tuple(selected_keys), True, True
+                selected_keys, True, True
             )
             data_list = self.on_status_changed(data)
             for data in data_list:

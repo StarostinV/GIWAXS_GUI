@@ -225,13 +225,15 @@ class FileWidget(BasicROIContainer, QTreeView):
         sc_create.image_changed(0)
         for roi in self.roi_dict.values():
             roi.set_inactive()
-            sc_delete.segment_deleted(roi.value, signal_type='exceptForNames')
+            sc_delete.segment_deleted(
+                roi.value, signal_type=SignalContainer.SignalTypes.except_for_names)
         self.roi_dict = dict()
         self.current_dataset = item
         for child_item in self.current_dataset.get_child_rois():
             value = child_item.roi.value
             self.roi_dict[value.key] = child_item.roi
-            sc_create.segment_created(value, signal_type='exceptForNames')
+            sc_create.segment_created(
+                value, signal_type=SignalContainer.SignalTypes.except_for_names)
         if self.current_dataset.has_properties:
             self._set_file_properties_to_image()
         else:

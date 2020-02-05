@@ -2,7 +2,7 @@ import logging
 from functools import wraps
 from typing import NamedTuple
 from pathlib import Path
-from enum import Enum
+from enum import Enum, auto
 
 from PyQt5.QtWidgets import (QGraphicsColorizeEffect, QLineEdit,
                              QWidget, QApplication, QMessageBox)
@@ -14,9 +14,14 @@ ICON_PATH = Path(__file__).parents[0] / 'static' / 'icons'
 logger = logging.getLogger(__name__)
 
 
-class RoiTypes(Enum):
-    ring = 1
-    segment = 2
+class AutoName(Enum):
+    def _generate_next_value_(name, *args):
+        return name
+
+
+class RoiTypes(AutoName):
+    ring = auto()
+    segment = auto()
 
 
 class RoiParameters(NamedTuple):
@@ -30,7 +35,7 @@ class RoiParameters(NamedTuple):
     movable: bool = True
     fitted: bool = False
     fit_r_parameters: tuple = None
-    type: str = RoiTypes.ring
+    type: RoiTypes = RoiTypes.ring
 
     roi_types = RoiTypes  # not a field!
 

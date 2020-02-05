@@ -119,7 +119,7 @@ class RadialProfileWidget(BasicROIContainer, PlotWithBaseLineCorrection):
             fit_params.add_value(value)
             value = list(fit_params.fit())[0]
             if value is not None:
-                sc.segment_moved(value, signal_type='broadcast')
+                sc.segment_moved(value, signal_type=sc.SignalTypes.broadcast)
                 sc.segment_fixed(value)
             fit_params.clear()
         sc.send()
@@ -133,7 +133,7 @@ class RadialProfileWidget(BasicROIContainer, PlotWithBaseLineCorrection):
         fit_params = FitParameters(self.x, self.smoothed_y, self.image.scale)
         fit_params.add_values(self.get_selected())
         for value in fit_params.fit():
-            sc.segment_moved(value, signal_type='broadcast')
+            sc.segment_moved(value, signal_type=sc.SignalTypes.broadcast)
             sc.segment_fixed(value)
         sc.send()
 
