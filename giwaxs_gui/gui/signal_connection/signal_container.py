@@ -1,8 +1,6 @@
 import logging
 import weakref
 
-from collections import defaultdict
-
 from functools import wraps
 
 from .signal_keys import SignalKeys
@@ -29,9 +27,9 @@ class BasicSignalContainer(object):
     def app_node(self):
         return self._app_node() if self._app_node else None
 
-    def __init__(self, signals: defaultdict = None, app_node: 'AppNode' = None):
-        self._signals = signals or defaultdict(list)
-        self._add_later = defaultdict(list)
+    def __init__(self, signals: dict = None, app_node: 'AppNode' = None):
+        self._signals = signals or dict()
+        self._add_later = dict()
         self._app_node = weakref.ref(app_node) if app_node else None
 
     def send(self, app_node=None):
@@ -44,9 +42,15 @@ class BasicSignalContainer(object):
                add_later: bool = False):
         if not copy:
             if add_later:
-                self._add_later[signal.key].append(signal)
+                try:
+                    self._add_later[signal.key].append(signal)
+                except KeyError:
+                    self._add_later[signal.key] = [signal]
             else:
-                self._signals[signal.key].append(signal)
+                try:
+                    self._signals[signal.key].append(signal)
+                except KeyError:
+                    self._signals[signal.key] = [signal]
         else:
             new_container = self.copy()
             new_container.append(signal, add_later=add_later)
@@ -57,14 +61,17 @@ class BasicSignalContainer(object):
 
     def finish_adding_later(self):
         for k, v in self._add_later.items():
-            self._signals[k] += v
-        self._add_later = defaultdict(list)
+            try:
+                self._signals[k] += v
+            except KeyError:
+                self._signals[k] = v
+        self._add_later = dict()
 
     def remove(self, signal: 'Signal', copy: bool = True) -> 'BasicSignalContainer' or None:
         # TODO: Add option to remove later?
         try:
             self._signals[signal.key].remove(signal)
-        except ValueError:
+        except (ValueError, KeyError):
             raise SignalNotFoundError()
         if copy:
             new_container = self.copy()
@@ -72,13 +79,10 @@ class BasicSignalContainer(object):
             return new_container
 
     def copy(self, copy_add_later: bool = True):
-        new_signals_dict = defaultdict(list)
-        for signal in self:
-            new_signals_dict[signal.key].append(signal.copy())
+        new_signals_dict = {k: [sig.copy() for sig in v] for k, v in self._signals.items()}
         new_container = self.__class__(new_signals_dict)
         if copy_add_later:
-            for k, v in self._add_later.items():
-                new_container._add_later[k] += [signal.copy() for signal in v]
+            new_container._add_later = {k: [sig.copy() for sig in v] for k, v in self._add_later.items()}
         return new_container
 
     def __iter__(self):
@@ -87,7 +91,10 @@ class BasicSignalContainer(object):
                 yield signal
 
     def __getitem__(self, item):
-        return self._signals[item]
+        try:
+            return self._signals[item]
+        except KeyError:
+            return ()
 
     def __repr__(self):
         return '\n'.join([str(signal) for signal in self])
@@ -120,10 +127,7 @@ class SignalContainer(BasicSignalContainer):
             signal_type = _get_type_by_key(signal_name)
         signal = Signal(data, signal_name, signal_type, address_names)
 
-        if add_later:
-            self._add_later[signal.key].append(signal)
-        else:
-            self.append(signal)
+        self.append(signal, add_later=add_later)
         return self
 
     # The following functions are shortcuts to simplify syntax.
