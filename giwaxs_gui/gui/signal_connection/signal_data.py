@@ -10,7 +10,8 @@ from ...utils import RoiParameters
 logger = logging.getLogger(__name__)
 
 __all__ = ['BasicSignalData', 'SegmentSignalData',
-           'StatusChangedSignal', 'NumpySignalData', 'StatusChangedContainer']
+           'StatusChangedSignal', 'NumpySignalData', 'StatusChangedContainer',
+           'EmptySignalData']
 
 
 class BasicSignalData(object):
