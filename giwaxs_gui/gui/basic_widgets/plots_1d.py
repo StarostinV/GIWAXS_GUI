@@ -424,6 +424,10 @@ class BaseLineSetup(QWidget):
             self.subtract_button.setEnabled(False)
             self.restore_button.setEnabled(True)
             self.calculate_button.setEnabled(False)
+        elif status == BaseLineStatus.baseline_restored:
+            self.subtract_button.setEnabled(True)
+            self.restore_button.setEnabled(False)
+            self.calculate_button.setEnabled(True)
         else:
             logger.error(f'Unknown status {status}')
             return
