@@ -448,13 +448,14 @@ def baseline_correction(y: np.ndarray,
                         asymmetry_param: float,
                         max_niter: int = 1000):
     y_size = y.size
-    difference_matrix = sparse.diags([1, -2, 1], [0, -1, -2], shape=(y_size, y_size - 2))
+    laplacian = sparse.diags([1, -2, 1], [0, -1, -2], shape=(y_size, y_size - 2))
+    laplacian_matrix = laplacian.dot(laplacian.transpose())
 
     z = np.zeros_like(y)
     w = np.ones(y_size)
     for i in range(max_niter):
         W = sparse.spdiags(w, 0, y_size, y_size)
-        Z = W + smoothness_param * difference_matrix.dot(difference_matrix.transpose())
+        Z = W + smoothness_param * laplacian_matrix
         z = spsolve(Z, w * y)
         w_new = asymmetry_param * (y > z) + (1 - asymmetry_param) * (y < z)
         if np.allclose(w, w_new):
