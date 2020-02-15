@@ -11,7 +11,7 @@ if not _CONFIG_FOLDER.is_dir():
     _CONFIG_FOLDER.mkdir()
 
 
-def read_config(config_name: str, get_default_values: bool = False):
+def read_config(config_name: str, get_default_values: bool = False) -> dict or None:
     filename = f'{config_name}.json'
     config_path = _CONFIG_FOLDER / filename
     config_default_path = _DEFAULT_CONFIG_FOLDER / filename
@@ -25,7 +25,7 @@ def read_config(config_name: str, get_default_values: bool = False):
             return saved_dict
 
 
-def _read_config(path: Path):
+def _read_config(path: Path) -> dict or None:
     try:
         with open(str(path), 'r') as fp:
             saved_dict = json.load(fp)
@@ -40,7 +40,7 @@ def _read_config(path: Path):
         return
 
 
-def save_config(config_name: str, config_dict: dict):
+def save_config(config_name: str, config_dict: dict) -> None:
     config_path = _CONFIG_FOLDER / f'{config_name}.json'
     try:
         with open(config_path, 'w') as fp:
